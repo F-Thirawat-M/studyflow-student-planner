@@ -38,7 +38,7 @@
   // ---------------- state ----------------
   let tasks = loadTasks();
   let activeTab = 'dashboard';
-  let calWeekStart = startOfWeek(new Date());
+  let calMonthStart = (() => { const t = new Date(); return new Date(t.getFullYear(), t.getMonth(), 1); })();
   let modalTaskId = null;   // id of task being edited, or NEW_TASK_SENTINEL, or null when closed
   let modalDraftId = null;  // stable id used for a brand-new task while its modal is open
   let modalDeps = [];
@@ -192,6 +192,7 @@
   const pertNodes = $('#pert-nodes');
   const chartTooltip = $('#chart-tooltip');
   const chartEmptyHint = $('#chart-empty-hint');
+  const calWeekdayRow = $('#cal-weekdays');
   const calGrid = $('#cal-grid');
   const calRangeLabel = $('#cal-range-label');
   const calCritical = $('#cal-critical');
@@ -369,32 +370,43 @@
   function hideTooltip() { chartTooltip.hidden = true; }
 
   // ---------------- rendering: calendar ----------------
+  const MAX_CHIPS_PER_DAY = 3;
+
   function renderCalendar(schedule) {
+    const monthStart = new Date(calMonthStart.getFullYear(), calMonthStart.getMonth(), 1);
+    const monthEnd = new Date(monthStart.getFullYear(), monthStart.getMonth() + 1, 0);
+    const gridStart = startOfWeek(monthStart);
+
     const days = [];
-    for (let i = 0; i < 7; i++) {
-      const d = new Date(calWeekStart);
+    for (let i = 0; i < 42; i++) {
+      const d = new Date(gridStart);
       d.setDate(d.getDate() + i);
       days.push(d);
     }
-    const rangeStart = days[0], rangeEnd = days[6];
-    const sameMonth = rangeStart.getMonth() === rangeEnd.getMonth();
-    const opts = { day: 'numeric', month: 'short' };
-    calRangeLabel.textContent = sameMonth
-      ? `${rangeStart.getDate()} – ${rangeEnd.toLocaleDateString(undefined, opts)}`
-      : `${rangeStart.toLocaleDateString(undefined, opts)} – ${rangeEnd.toLocaleDateString(undefined, opts)}`;
+    while (days.length > 35 && days.slice(-7).every(d => d > monthEnd)) days.splice(-7, 7);
+
+    calRangeLabel.textContent = monthStart.toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
+
+    if (!calWeekdayRow.children.length) {
+      calWeekdayRow.innerHTML = days.slice(0, 7)
+        .map(d => `<div class="cal-weekday">${d.toLocaleDateString(undefined, { weekday: 'short' })}</div>`)
+        .join('');
+    }
 
     const todayS = todayStr();
     calGrid.innerHTML = days.map(d => {
       const ds = formatDate(d);
+      const inMonth = d.getMonth() === monthStart.getMonth();
       const dayTasks = tasks.filter(t => t.dueDate === ds).sort((a, b) => a.name.localeCompare(b.name));
-      const label = d.toLocaleDateString(undefined, { weekday: 'short', day: 'numeric' });
-      const chips = dayTasks.map(t => {
+      const shown = dayTasks.slice(0, MAX_CHIPS_PER_DAY);
+      const extra = dayTasks.length - shown.length;
+      const chips = shown.map(t => {
         const sched = schedule[t.id];
         const critical = !t.done && sched && sched.critical;
         return `<div class="cal-task ${critical ? 'critical' : ''} ${t.done ? 'done' : ''}" data-id="${t.id}">${escapeHtml(t.name)}</div>`;
-      }).join('');
-      return `<div class="cal-day ${ds === todayS ? 'is-today' : ''}">
-                <div class="cal-day-label">${label}${ds === todayS ? ' · today' : ''}</div>
+      }).join('') + (extra > 0 ? `<div class="cal-more">+${extra} more</div>` : '');
+      return `<div class="cal-day ${ds === todayS ? 'is-today' : ''} ${inMonth ? '' : 'other-month'}">
+                <div class="cal-day-label">${d.getDate()}${ds === todayS ? ' · today' : ''}</div>
                 ${chips}
               </div>`;
     }).join('');
@@ -573,9 +585,9 @@
   fieldName.addEventListener('input', renderPreview);
   fieldDue.addEventListener('input', renderPreview);
 
-  $('#cal-prev').addEventListener('click', () => { calWeekStart.setDate(calWeekStart.getDate() - 7); renderCalendar(computeSchedule(tasks)); });
-  $('#cal-next').addEventListener('click', () => { calWeekStart.setDate(calWeekStart.getDate() + 7); renderCalendar(computeSchedule(tasks)); });
-  $('#cal-today').addEventListener('click', () => { calWeekStart = startOfWeek(new Date()); renderCalendar(computeSchedule(tasks)); });
+  $('#cal-prev').addEventListener('click', () => { calMonthStart.setMonth(calMonthStart.getMonth() - 1); renderCalendar(computeSchedule(tasks)); });
+  $('#cal-next').addEventListener('click', () => { calMonthStart.setMonth(calMonthStart.getMonth() + 1); renderCalendar(computeSchedule(tasks)); });
+  $('#cal-today').addEventListener('click', () => { const t = new Date(); calMonthStart = new Date(t.getFullYear(), t.getMonth(), 1); renderCalendar(computeSchedule(tasks)); });
 
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !modalBackdrop.hidden) closeModal(); });
 

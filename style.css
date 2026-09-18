@@ -141,13 +141,17 @@ body{
 /* ---- calendar ---- */
 .cal-toolbar{display:flex;align-items:center;gap:10px;margin-bottom:12px}
 .cal-range-label{font:700 16px Kalam,cursive}
-.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:0;overflow-x:auto;border:1.5px solid var(--border);border-radius:8px;background:var(--surface)}
+.cal-weekdays{display:grid;grid-template-columns:repeat(7,1fr);gap:0;padding:0 2px;margin-bottom:6px}
+.cal-weekday{font:14px Caveat,cursive;color:var(--muted);text-align:center}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);grid-auto-rows:112px;gap:0;overflow-x:auto;border:1.5px solid var(--border);border-radius:8px;background:var(--surface)}
 .cal-day{
-  border-right:1px solid var(--border-soft);padding:8px;min-height:130px;
-  display:flex;flex-direction:column;gap:6px;
+  border-right:1px solid var(--border-soft);border-bottom:1px solid var(--border-soft);padding:8px;
+  display:flex;flex-direction:column;gap:4px;overflow:hidden;
 }
-.cal-day:last-child{border-right:none}
+.cal-day:nth-child(7n){border-right:none}
+.cal-day:nth-last-child(-n+7){border-bottom:none}
 .cal-day.is-today{background:var(--today-bg)}
+.cal-day.other-month{background:var(--surface);opacity:.4}
 .cal-day-label{font:15px Caveat,cursive;color:var(--muted)}
 .cal-day.is-today .cal-day-label{color:var(--ink);font-weight:600}
 .cal-task{
@@ -156,6 +160,7 @@ body{
 }
 .cal-task.critical{border-color:var(--critical);color:var(--critical)}
 .cal-task.done{opacity:.45;text-decoration:line-through}
+.cal-more{font:14px Caveat,cursive;color:var(--muted)}
 .cal-critical{margin-top:14px;padding:12px 14px;background:var(--surface);border:1.5px dashed var(--dash);border-radius:8px;font:16px Caveat,cursive;color:var(--muted)}
 .cal-critical b{color:var(--critical);font-family:Kalam,cursive}
 
@@ -192,5 +197,5 @@ body{
 
 @media (max-width:640px){
   .stats-row{grid-template-columns:repeat(2,1fr)}
-  .cal-grid{grid-template-columns:repeat(7,140px)}
+  .cal-weekdays,.cal-grid{grid-template-columns:repeat(7,90px)}
 }
