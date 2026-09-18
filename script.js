@@ -48,22 +48,9 @@
       const raw = localStorage.getItem(STORAGE_KEY);
       if (raw) return JSON.parse(raw);
     } catch (e) { /* ignore corrupt storage */ }
-    return seedTasks();
+    return [];
   }
   function saveTasks() { localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks)); }
-
-  function seedTasks() {
-    const t = todayStr();
-    const mk = (id, name, dueOffset, deps) => ({ id, name, dueDate: addDays(t, dueOffset), deps, done: false });
-    return [
-      mk('a', 'Literature review draft', 3, []),
-      mk('c', 'Essay first draft', 5, ['a']),
-      mk('b', 'Lab report data collection', 6, ['a']),
-      mk('d', 'Reading response', 7, []),
-      mk('e', 'Final presentation', 9, ['c', 'b']),
-      mk('f', 'Group check-in notes', 10, []),
-    ];
-  }
 
   function byId(id) { return tasks.find(t => t.id === id); }
 
@@ -213,7 +200,7 @@
     else if (days === 0) metaText = 'due today';
     else if (days === 1) metaText = 'due tomorrow';
     else metaText = `due in ${days} days`;
-    if (sched && sched.critical) metaText += ' · critical path';
+    if (sched && sched.critical) metaText += ' · ต้องส่งวันนี้';
 
     upNextSlot.innerHTML = `
       <div class="up-next ${urgent ? 'is-urgent' : ''}">
@@ -239,7 +226,7 @@
     statsRow.innerHTML = `
       <div class="stat-tile"><div class="stat-label">tasks left</div><div class="stat-value">${open.length}</div></div>
       <div class="stat-tile"><div class="stat-label">all done by</div><div class="stat-value">${allDoneBy ? fmtDisplay(allDoneBy) : '—'}</div></div>
-      <div class="stat-tile crit"><div class="stat-label">critical path</div><div class="stat-value">${chain.length ? chain.map(t => escapeHtml(t.name)).join(' → ') : '—'}</div></div>
+      <div class="stat-tile crit"><div class="stat-label">ต้องส่งวันนี้</div><div class="stat-value">${chain.length ? chain.map(t => escapeHtml(t.name)).join(' → ') : '—'}</div></div>
       <div class="stat-tile"><div class="stat-label">done</div><div class="stat-value">${doneCount}/${tasks.length}</div></div>
     `;
   }
@@ -255,7 +242,7 @@
       const after = t.deps.length ? t.deps.map(id => (byId(id) ? byId(id).name : '?')).join(', ') : '—';
       let statusLabel = 'normal', statusClass = '';
       if (t.done) { statusLabel = 'done'; statusClass = 'done'; }
-      else if (sched && sched.critical) { statusLabel = 'critical'; statusClass = 'critical'; }
+      else if (sched && sched.critical) { statusLabel = 'ต้องส่งวันนี้'; statusClass = 'critical'; }
       return `
         <tr data-id="${t.id}" class="${t.done ? 'is-done' : ''}">
           <td class="col-check"><input type="checkbox" class="row-check" ${t.done ? 'checked' : ''} data-id="${t.id}"></td>
@@ -358,7 +345,7 @@
     const sched = schedule[id];
     if (!t || !sched) return;
     const slackText = sched.slack < 0 ? `${-sched.slack} day(s) behind` : `${sched.slack} day(s) slack`;
-    chartTooltip.innerHTML = `<b>${escapeHtml(t.name)}</b><br>due ${fmtDisplay(t.dueDate)} · ${slackText}${sched.critical ? '<br>on critical path' : ''}`;
+    chartTooltip.innerHTML = `<b>${escapeHtml(t.name)}</b><br>due ${fmtDisplay(t.dueDate)} · ${slackText}${sched.critical ? '<br>ต้องส่งวันนี้' : ''}`;
     chartTooltip.hidden = false;
     positionTooltip(e);
   }
@@ -417,7 +404,7 @@
 
     const chain = criticalChain(tasks, schedule);
     calCritical.innerHTML = chain.length
-      ? `critical path: <b>${chain.map(t => escapeHtml(t.name)).join(' → ')}</b> — slip one of these and everything moves`
+      ? `ต้องส่งวันนี้: <b>${chain.map(t => escapeHtml(t.name)).join(' → ')}</b> — slip one of these and everything moves`
       : 'no critical chain yet — add dependent tasks to see one';
   }
 
@@ -510,7 +497,7 @@
     previewBox.innerHTML = `
       <div class="pv-line">earliest realistic finish: ${fmtDisplay(sched.asap)}</div>
       <div class="pv-line">${slackText}</div>
-      <div class="pv-line ${sched.critical ? 'pv-critical' : ''}">${sched.critical ? 'on the critical path' : 'not on the critical path'}</div>
+      <div class="pv-line ${sched.critical ? 'pv-critical' : ''}">${sched.critical ? 'ต้องส่งวันนี้' : 'ไม่ต้องส่งวันนี้'}</div>
     `;
   }
 
