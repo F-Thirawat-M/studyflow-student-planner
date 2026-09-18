@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>my deadlines</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Kalam:wght@300;400;700&family=Caveat:wght@400;600&display=swap">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <h1 class="brand">my deadlines</h1>
+    <nav class="tabs" role="tablist">
+      <button class="tab-btn active" data-tab="dashboard" type="button">Dashboard</button>
+      <button class="tab-btn" data-tab="chart" type="button">PERT Chart</button>
+      <button class="tab-btn" data-tab="calendar" type="button">Calendar</button>
+    </nav>
+    <button class="btn btn-primary" id="add-task-btn" type="button">+ add task</button>
+  </header>
+
+  <div id="toast-container" class="toast-container" aria-live="polite"></div>
+
+  <main>
+    <section id="panel-dashboard" class="panel active">
+      <div id="up-next-slot"></div>
+      <div class="stats-row" id="stats-row"></div>
+      <table class="task-table">
+        <thead>
+          <tr><th class="col-check"></th><th>task</th><th>due</th><th>after</th><th>status</th></tr>
+        </thead>
+        <tbody id="task-list-body"></tbody>
+      </table>
+      <p class="empty-hint" id="empty-hint" hidden>No tasks yet — add your first one.</p>
+    </section>
+
+    <section id="panel-chart" class="panel">
+      <div class="chart-toolbar">
+        <div class="crit-label">critical path: <span id="chart-critical-path">—</span></div>
+      </div>
+      <div class="chart-wrap" id="chart-wrap">
+        <svg id="pert-svg"></svg>
+        <div id="pert-nodes" class="pert-nodes"></div>
+        <div id="chart-tooltip" class="chart-tooltip" hidden></div>
+        <p class="empty-hint" id="chart-empty-hint" hidden>Add tasks with due dates to see the chart.</p>
+      </div>
+    </section>
+
+    <section id="panel-calendar" class="panel">
+      <div class="cal-toolbar">
+        <button id="cal-prev" class="btn btn-ghost" type="button">‹</button>
+        <div id="cal-range-label" class="cal-range-label"></div>
+        <button id="cal-next" class="btn btn-ghost" type="button">›</button>
+        <button id="cal-today" class="btn btn-ghost" type="button">today</button>
+      </div>
+      <div class="cal-grid" id="cal-grid"></div>
+      <div class="cal-critical" id="cal-critical"></div>
+    </section>
+  </main>
+</div>
+
+<div id="modal-backdrop" class="modal-backdrop" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal-header">
+      <h2 id="modal-title">new task</h2>
+      <button class="icon-btn" id="modal-close" type="button" aria-label="Close">✕</button>
+    </div>
+    <div class="modal-body">
+      <label class="field">
+        <span class="field-label">what is it</span>
+        <input type="text" id="field-name" placeholder="e.g. finish essay draft" maxlength="80">
+      </label>
+      <label class="field">
+        <span class="field-label">due date</span>
+        <input type="date" id="field-due">
+        <span class="field-hint">can't be earlier than today</span>
+      </label>
+      <div class="field">
+        <span class="field-label">must finish after</span>
+        <div class="chip-row" id="deps-chip-row"></div>
+        <span class="field-hint">greyed-out ones would create a loop</span>
+      </div>
+      <div class="preview-box" id="preview-box"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-primary" id="modal-save" type="button">save</button>
+      <button class="btn btn-ghost" id="modal-cancel" type="button">cancel</button>
+      <button class="btn btn-danger" id="modal-delete" type="button" hidden>delete</button>
+    </div>
+  </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
