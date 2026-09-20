@@ -1,42 +1,28 @@
-# StudyFlow
+# StudyFlow Student Planner
 
-เว็บวางแผนงานเรียนด้วย PERT และ dependency ระหว่างงาน ใช้งานได้โดยไม่ต้องติดตั้งไลบรารีเพิ่มเติม
+A dependency-aware student planner built with plain HTML, CSS, and JavaScript. No build step or third-party JavaScript framework is required.
 
-## ความสามารถ
+## Run locally
 
-- เพิ่ม แก้ไข ลบ และทำเครื่องหมายว่างานเสร็จแล้ว
-- กำหนดงานที่ต้องทำก่อน พร้อมป้องกัน dependency วนซ้ำ
-- ประมาณระยะเวลาด้วยสูตร PERT: `(O + 4M + P) / 6`
-- แสดงเส้นทางวิกฤต เวลาสำรอง แผนภูมิ และปฏิทินรายเดือน
-- บันทึกข้อมูลใน `localStorage` ของเบราว์เซอร์
+Open `index.html` in a browser, or serve the folder with any static web server.
 
-## เปิดใช้งานในเครื่อง
+## Project structure
 
-```powershell
-npm start
+```text
+index.html                 Page structure and accessible markup
+assets/css/base.css        Design tokens, typography, and global layout
+assets/css/components.css  Header, buttons, modal, and shared components
+assets/css/views.css       Dashboard, timeline, and calendar views
+assets/css/theme-playful.css Playful hand-drawn visual theme
+assets/js/core.js          Shared configuration, dates, and utilities
+assets/js/store.js         Local storage and task data operations
+assets/js/scheduler.js     Dependency and critical-path calculations
+assets/js/dashboard.js     Overview rendering
+assets/js/chart.js         Timeline rendering
+assets/js/calendar.js      Calendar rendering
+assets/js/summary.js       Progress summary and completed/pending lists
+assets/js/modal.js         Task editor behavior
+assets/js/app.js           App startup and event coordination
 ```
 
-จากนั้นเปิด <http://127.0.0.1:8765>
-
-## ทดสอบ
-
-```powershell
-npm test
-```
-
-## Deploy
-
-โปรเจกต์เป็น static site จึง deploy ได้ทันทีบน GitHub Pages, Netlify หรือ Vercel โดยไม่ต้องมี build command และใช้โฟลเดอร์รากเป็น publish directory
-
-## ต้องใช้ฐานข้อมูลหรือไม่
-
-เวอร์ชันปัจจุบันไม่จำเป็นต้องมีฐานข้อมูลเพื่อ deploy แต่ข้อมูลจะอยู่เฉพาะเบราว์เซอร์และเครื่องที่สร้างงานเท่านั้น
-
-ควรเพิ่มระบบยืนยันตัวตนและฐานข้อมูล เช่น Supabase หรือ Firebase เมื่อ requirement ต้องการอย่างใดอย่างหนึ่งต่อไปนี้:
-
-- เปิดงานเดิมจากหลายอุปกรณ์
-- มีบัญชีผู้ใช้
-- แชร์แผนงานหรือทำงานร่วมกัน
-- สำรองและกู้คืนข้อมูล
-
-ก่อนเชื่อมฐานข้อมูลควรกำหนดให้ชัดว่าเป็นแอปส่วนตัวหรือแอปกลุ่ม และเลือกผู้ให้บริการที่จะใช้ เพื่อออกแบบตารางและสิทธิ์เข้าถึงให้ถูกต้อง ไม่ควรใส่ secret key ลงใน repository
+Task data remains stored in the browser under the existing `my-deadlines-tasks-v1` key, so current data is preserved.

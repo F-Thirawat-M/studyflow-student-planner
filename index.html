@@ -1,61 +1,132 @@
-<!DOCTYPE html>
-<html lang="th">
+<!doctype html>
+<html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>StudyFlow — วางแผนงานเรียน</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Kalam:wght@300;400;700&family=Caveat:wght@400;600&display=swap">
-<link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#635bff">
+  <meta name="description" content="A focused student planner for deadlines, dependencies, and study schedules.">
+  <title>StudyFlow · Student Planner</title>
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Mali:wght@400;500;600;700&family=Noto+Sans+Thai:wght@400;500;600;700;800&display=swap">
+  <link rel="stylesheet" href="assets/css/base.css">
+  <link rel="stylesheet" href="assets/css/components.css">
+  <link rel="stylesheet" href="assets/css/views.css">
+  <link rel="stylesheet" href="assets/css/theme-playful.css">
 </head>
 <body>
-<div class="app">
+<div class="app-shell">
   <header class="topbar">
-    <h1 class="brand">StudyFlow</h1>
-    <nav class="tabs" role="tablist">
-      <button class="tab-btn active" data-tab="dashboard" type="button">ภาพรวม</button>
-      <button class="tab-btn" data-tab="chart" type="button">แผนภูมิ PERT</button>
-      <button class="tab-btn" data-tab="calendar" type="button">ปฏิทิน</button>
+    <a class="brand" href="#" aria-label="StudyFlow home">
+      <span class="brand-mark" aria-hidden="true">✦</span>
+      <span>study flow</span>
+    </a>
+    <nav class="tabs" role="tablist" aria-label="Planner views">
+      <button class="tab-btn active" data-tab="dashboard" type="button" role="tab" aria-selected="true" aria-controls="panel-dashboard">ภาพรวม</button>
+      <button class="tab-btn" data-tab="chart" type="button" role="tab" aria-selected="false" aria-controls="panel-chart">ลำดับงาน</button>
+      <button class="tab-btn" data-tab="calendar" type="button" role="tab" aria-selected="false" aria-controls="panel-calendar">ปฏิทิน</button>
+      <button class="tab-btn" data-tab="summary" type="button" role="tab" aria-selected="false" aria-controls="panel-summary">สรุป</button>
     </nav>
-    <button class="btn btn-primary" id="add-task-btn" type="button">+ เพิ่มงาน</button>
+    <button class="btn btn-primary" id="add-task-btn" type="button"><span aria-hidden="true">＋</span> เพิ่มงาน</button>
   </header>
 
   <div id="toast-container" class="toast-container" aria-live="polite"></div>
 
-  <main>
-    <section id="panel-dashboard" class="panel active">
+  <main class="main-content">
+    <div class="page-heading">
+      <div class="hero-copy">
+        <p class="eyebrow">ตัวช่วยวางแผนการเรียน</p>
+        <h1>จัดการทุกงานให้เสร็จทันเวลา</h1>
+        <p class="page-description">วางแผนงาน ดูลำดับที่ต้องทำ และรู้ได้ทันทีว่างานไหนควรทำต่อ</p>
+        <div class="hero-stickers" aria-hidden="true"><span>✎ จดไว้</span><span>✓ ทำทีละอย่าง</span></div>
+      </div>
+      <div class="study-buddy" aria-hidden="true">
+        <span class="buddy-spark spark-one">✦</span>
+        <span class="buddy-spark spark-two">✿</span>
+        <svg viewBox="0 0 250 190" role="img">
+          <path d="M42 151h152l9 20H31z" fill="#7a6cf6" stroke="#25213b" stroke-width="4" stroke-linejoin="round"/>
+          <path d="M54 127h139l1 24H42z" fill="#51c5a8" stroke="#25213b" stroke-width="4" stroke-linejoin="round"/>
+          <path d="M72 103h123l-2 24H54z" fill="#ffcf56" stroke="#25213b" stroke-width="4" stroke-linejoin="round"/>
+          <path d="M86 50c0-24 17-38 40-38 26 0 43 17 43 43v48H86z" fill="#3c315d" stroke="#25213b" stroke-width="4"/>
+          <path d="M94 61c0-23 13-38 34-38 19 0 33 15 33 37v43H94z" fill="#ffb895" stroke="#25213b" stroke-width="4"/>
+          <path d="M94 53c5-25 20-35 38-31 12 3 22 13 27 28-17 1-28-6-35-17-5 12-15 19-30 20z" fill="#3c315d"/>
+          <circle cx="113" cy="64" r="3.5" fill="#25213b"/><circle cx="145" cy="64" r="3.5" fill="#25213b"/>
+          <path d="M120 78c7 6 14 6 21 0" fill="none" stroke="#25213b" stroke-width="3" stroke-linecap="round"/>
+          <path d="M85 104c17-13 31-18 43-18 15 0 31 6 47 18l-8 31H91z" fill="#ff758f" stroke="#25213b" stroke-width="4" stroke-linejoin="round"/>
+          <path d="M119 91l10 11 10-11" fill="none" stroke="#fff8ec" stroke-width="4" stroke-linecap="round"/>
+          <path d="M78 100c-7-8-16-10-23-4-7 7-5 17 3 24l25 18 10-14z" fill="#ffb895" stroke="#25213b" stroke-width="4" stroke-linejoin="round"/>
+          <path d="M177 103l21-34 8 5-17 39z" fill="#fff8ec" stroke="#25213b" stroke-width="4" stroke-linejoin="round"/>
+          <path d="M197 69l6-11 8 5-5 11z" fill="#ff758f" stroke="#25213b" stroke-width="4"/>
+          <path d="M169 104c10-4 20 0 21 9 1 8-5 15-15 17l-15 2z" fill="#ffb895" stroke="#25213b" stroke-width="4"/>
+        </svg>
+        <span class="buddy-note">ไปต่ออีกนิด!</span>
+      </div>
+    </div>
+
+    <section id="panel-dashboard" class="panel active" role="tabpanel">
       <div id="up-next-slot"></div>
       <div class="stats-row" id="stats-row"></div>
-      <table class="task-table">
-        <thead>
-          <tr><th class="col-check"></th><th>งาน</th><th>กำหนดส่ง</th><th>ทำหลังจาก</th><th>สถานะ</th></tr>
-        </thead>
-        <tbody id="task-list-body"></tbody>
-      </table>
-      <p class="empty-hint" id="empty-hint" hidden>ยังไม่มีงาน — ลองเพิ่มงานแรกของคุณ</p>
+      <div class="section-heading">
+        <div><p class="eyebrow">รายการของคุณ</p><h2>งานทั้งหมด</h2></div>
+      </div>
+      <div class="table-card">
+        <table class="task-table">
+          <thead>
+            <tr><th class="col-check"><span class="sr-only">เสร็จแล้ว</span></th><th>งาน</th><th>กำหนดส่ง</th><th>ต้องทำหลังจาก</th><th>สถานะ</th></tr>
+          </thead>
+          <tbody id="task-list-body"></tbody>
+        </table>
+        <p class="empty-hint" id="empty-hint" hidden>ยังไม่มีงาน — ลองเพิ่มงานแรกของคุณ</p>
+      </div>
     </section>
 
-    <section id="panel-chart" class="panel">
+    <section id="panel-chart" class="panel" role="tabpanel" hidden>
       <div class="chart-toolbar">
-        <div class="crit-label">เส้นทางวิกฤต: <span id="chart-critical-path">—</span></div>
+        <div><p class="eyebrow">ดูว่างานไหนต้องทำก่อน</p><h2>ลำดับการทำงาน</h2></div>
+        <div class="crit-label">งานที่ห้ามล่าช้า: <span id="chart-critical-path">—</span></div>
       </div>
       <div class="chart-wrap" id="chart-wrap">
         <svg id="pert-svg"></svg>
         <div id="pert-nodes" class="pert-nodes"></div>
         <div id="chart-tooltip" class="chart-tooltip" hidden></div>
-        <p class="empty-hint" id="chart-empty-hint" hidden>เพิ่มงานและกำหนดวันส่งเพื่อดูแผนภูมิ</p>
+        <p class="empty-hint" id="chart-empty-hint" hidden>เพิ่มงานและวันกำหนดส่งเพื่อดูลำดับงาน</p>
       </div>
     </section>
 
-    <section id="panel-calendar" class="panel">
+    <section id="panel-calendar" class="panel" role="tabpanel" hidden>
       <div class="cal-toolbar">
-        <button id="cal-prev" class="btn btn-ghost" type="button">‹</button>
-        <div id="cal-range-label" class="cal-range-label"></div>
-        <button id="cal-next" class="btn btn-ghost" type="button">›</button>
+        <div><p class="eyebrow">ดูงานรายเดือน</p><h2 id="cal-range-label" class="cal-range-label"></h2></div>
+        <span class="toolbar-spacer"></span>
+        <button id="cal-prev" class="btn btn-icon btn-ghost" type="button" aria-label="Previous month">‹</button>
+        <button id="cal-next" class="btn btn-icon btn-ghost" type="button" aria-label="Next month">›</button>
         <button id="cal-today" class="btn btn-ghost" type="button">วันนี้</button>
       </div>
       <div class="cal-weekdays" id="cal-weekdays"></div>
       <div class="cal-grid" id="cal-grid"></div>
       <div class="cal-critical" id="cal-critical"></div>
+    </section>
+
+    <section id="panel-summary" class="panel" role="tabpanel" hidden>
+      <div class="summary-heading">
+        <div><p class="eyebrow">ติดตามความคืบหน้า</p><h2>สรุปงานของคุณ</h2></div>
+        <p id="summary-message" class="summary-message"></p>
+      </div>
+      <div id="summary-stats" class="summary-stats"></div>
+      <div class="progress-card">
+        <div class="progress-heading"><div><p class="eyebrow">ความคืบหน้าโดยรวม</p><strong id="summary-progress-label">0%</strong></div><span id="summary-progress-detail"></span></div>
+        <div class="progress-track" role="progressbar" aria-label="ความคืบหน้าของงาน" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="summary-progress-bar"></span></div>
+      </div>
+      <div class="summary-lists">
+        <article class="summary-list-card">
+          <div class="summary-list-heading"><span class="summary-list-icon pending" aria-hidden="true">○</span><div><h3>งานที่ยังไม่เสร็จ</h3><p id="pending-count-label"></p></div></div>
+          <div id="summary-pending-list" class="summary-task-list"></div>
+        </article>
+        <article class="summary-list-card">
+          <div class="summary-list-heading"><span class="summary-list-icon completed" aria-hidden="true">✓</span><div><h3>งานที่เสร็จแล้ว</h3><p id="completed-count-label"></p></div></div>
+          <div id="summary-completed-list" class="summary-task-list"></div>
+        </article>
+      </div>
     </section>
   </main>
 </div>
@@ -63,19 +134,18 @@
 <div id="modal-backdrop" class="modal-backdrop" hidden>
   <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
     <div class="modal-header">
-      <h2 id="modal-title">เพิ่มงาน</h2>
+      <div><p class="eyebrow">รายละเอียดงาน</p><h2 id="modal-title">เพิ่มงานใหม่</h2></div>
       <button class="icon-btn" id="modal-close" type="button" aria-label="Close">✕</button>
     </div>
     <div class="modal-body">
       <label class="field">
         <span class="field-label">ชื่องาน</span>
-        <input type="text" id="field-name" placeholder="เช่น ส่งร่างรายงาน" maxlength="80">
+        <input type="text" id="field-name" placeholder="เช่น ทำรายงานฉบับร่างให้เสร็จ" maxlength="80" autocomplete="off">
       </label>
       <label class="field">
         <span class="field-label">กำหนดส่ง</span>
         <input type="date" id="field-due">
-        <span class="field-hint">ต้องไม่เร็วกว่าวันนี้</span>
-        <span class="field-error" id="date-error" hidden></span>
+        <span class="field-hint">เลือกวันนี้หรือวันที่ในอนาคต</span>
       </label>
       <fieldset class="pert-fields">
         <legend>ประมาณการแบบ PERT (วัน)</legend>
@@ -86,21 +156,28 @@
         <span class="field-error" id="estimate-error" hidden></span>
       </fieldset>
       <div class="field">
-        <span class="field-label">ต้องทำหลังจาก</span>
+        <span class="field-label">ต้องทำหลังจากงานใด</span>
         <div class="chip-row" id="deps-chip-row"></div>
-        <span class="field-hint">รายการสีเทาจะทำให้ลำดับงานวนซ้ำ</span>
+        <span class="field-hint">งานที่เลือกไม่ได้จะทำให้ลำดับงานวนซ้ำกัน</span>
       </div>
       <div class="preview-box" id="preview-box"></div>
     </div>
     <div class="modal-footer">
-      <button class="btn btn-primary" id="modal-save" type="button">บันทึก</button>
+      <button class="btn btn-primary" id="modal-save" type="button">บันทึกงาน</button>
       <button class="btn btn-ghost" id="modal-cancel" type="button">ยกเลิก</button>
-      <button class="btn btn-danger" id="modal-delete" type="button" hidden>ลบ</button>
+      <button class="btn btn-danger" id="modal-delete" type="button" hidden>ลบงาน</button>
     </div>
   </div>
 </div>
 
-<script src="schedule-core.js"></script>
-<script src="script.js"></script>
+<script defer src="assets/js/core.js"></script>
+<script defer src="assets/js/store.js"></script>
+<script defer src="assets/js/scheduler.js"></script>
+<script defer src="assets/js/dashboard.js"></script>
+<script defer src="assets/js/chart.js"></script>
+<script defer src="assets/js/calendar.js"></script>
+<script defer src="assets/js/summary.js"></script>
+<script defer src="assets/js/modal.js"></script>
+<script defer src="assets/js/app.js"></script>
 </body>
 </html>
