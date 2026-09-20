@@ -19,6 +19,7 @@ assets/js/scheduler.js     Dependency and critical-path calculations
 assets/js/dashboard.js     Overview rendering
 assets/js/chart.js         Timeline rendering
 assets/js/calendar.js      Calendar rendering
+assets/js/summary.js       Progress summary and completed/pending lists
 assets/js/modal.js         Task editor behavior
 assets/js/app.js           App startup and event coordination
 ```

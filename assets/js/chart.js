@@ -10,7 +10,7 @@
     const nodes = select('#pert-nodes');
     const empty = select('#chart-empty-hint');
     const chain = SF.scheduler.criticalChain(tasks, schedule);
-    select('#chart-critical-path').textContent = chain.length ? chain.map((task) => task.name).join(' → ') : 'No critical tasks';
+    select('#chart-critical-path').textContent = chain.length ? chain.map((task) => task.name).join(' → ') : 'ไม่มีงานที่เสี่ยงทำให้แผนล่าช้า';
 
     if (!tasks.length) {
       nodes.innerHTML = '';
@@ -65,7 +65,7 @@
     nodes.innerHTML = tasks.map((task) => {
       const position = positions[task.id];
       const critical = !task.done && schedule[task.id]?.critical;
-      return `<button class="pert-node ${critical ? 'critical' : ''} ${task.done ? 'done' : ''}" style="left:${position.x}px;top:${position.y}px;width:${layout.nodeWidth}px" data-id="${task.id}" type="button"><span class="pn-name">${escapeHtml(task.name)}</span><span class="pn-due">Due ${SF.date.display(task.dueDate)}</span></button>`;
+      return `<button class="pert-node ${critical ? 'critical' : ''} ${task.done ? 'done' : ''}" style="left:${position.x}px;top:${position.y}px;width:${layout.nodeWidth}px" data-id="${task.id}" type="button"><span class="pn-name">${escapeHtml(task.name)}</span><span class="pn-due">ส่ง ${SF.date.display(task.dueDate)}</span></button>`;
     }).join('');
   }
 
@@ -74,8 +74,8 @@
     const timing = schedule[id];
     if (!task || !timing) return;
     const tooltip = select('#chart-tooltip');
-    const slack = timing.slack < 0 ? `${-timing.slack} day(s) behind` : `${timing.slack} day(s) of slack`;
-    tooltip.innerHTML = `<strong>${escapeHtml(task.name)}</strong><span>Due ${SF.date.display(task.dueDate)} · ${slack}</span>${timing.critical ? '<span class="tooltip-critical">Critical path</span>' : ''}`;
+    const slack = timing.slack < 0 ? `ช้ากว่าแผน ${-timing.slack} วัน` : `เลื่อนได้อีก ${timing.slack} วัน`;
+    tooltip.innerHTML = `<strong>${escapeHtml(task.name)}</strong><span>ส่ง ${SF.date.display(task.dueDate)} · ${slack}</span>${timing.critical ? '<span class="tooltip-critical">งานนี้ห้ามล่าช้า</span>' : ''}`;
     tooltip.hidden = false;
     positionTooltip(event);
   }

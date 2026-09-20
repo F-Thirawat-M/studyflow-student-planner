@@ -22,7 +22,7 @@
     taskId = editing?.id || SF.config.newTaskId;
     draftId = editing?.id || uid();
     dependencies = editing ? [...editing.deps] : [];
-    refs.title.textContent = editing ? 'Edit task' : 'New task';
+    refs.title.textContent = editing ? 'แก้ไขงาน' : 'เพิ่มงานใหม่';
     refs.name.value = editing?.name || '';
     refs.due.value = editing?.dueDate || '';
     refs.due.min = SF.date.today();
@@ -49,7 +49,7 @@
       const selected = dependencies.includes(candidate.id);
       const createsLoop = realId && SF.scheduler.dependsOn(candidate.id, realId, SF.store.all());
       return `<button type="button" class="dep-chip ${selected ? 'selected' : ''}" data-id="${candidate.id}" ${createsLoop ? 'disabled' : ''} aria-pressed="${selected}">${escapeHtml(candidate.name)}</button>`;
-    }).join('') || '<span class="field-hint">Create another task first to add a dependency.</span>';
+    }).join('') || '<span class="field-hint">เพิ่มงานอื่นก่อน จึงจะเลือกลำดับงานได้</span>';
   }
 
   function toggleDependency(id) {
@@ -63,14 +63,14 @@
   function renderPreview() {
     const dueDate = refs.due.value;
     if (!dueDate) {
-      refs.preview.innerHTML = '<p class="pv-empty">Choose a due date to preview your schedule.</p>';
+      refs.preview.innerHTML = '<p class="pv-empty">เลือกกำหนดส่งเพื่อดูว่าแผนงานเป็นอย่างไร</p>';
       return;
     }
-    const draft = { id: draftId, name: refs.name.value.trim() || 'This task', dueDate, deps: dependencies, done: false };
+    const draft = { id: draftId, name: refs.name.value.trim() || 'งานนี้', dueDate, deps: dependencies, done: false };
     const schedule = SF.scheduler.compute([...SF.store.all().filter((task) => task.id !== draftId), draft]);
     const timing = schedule[draftId];
-    const slack = timing.slack < 0 ? `${-timing.slack} day(s) behind schedule` : `${timing.slack} day(s) of flexibility`;
-    refs.preview.innerHTML = `<div class="preview-item"><span>Earliest start</span><strong>${SF.date.display(timing.asap)}</strong></div><div class="preview-item"><span>Schedule health</span><strong class="${timing.critical ? 'pv-critical' : ''}">${slack}</strong></div>`;
+    const slack = timing.slack < 0 ? `ช้ากว่าแผน ${-timing.slack} วัน` : `เลื่อนได้อีก ${timing.slack} วัน`;
+    refs.preview.innerHTML = `<div class="preview-item"><span>เริ่มได้เร็วที่สุด</span><strong>${SF.date.display(timing.asap)}</strong></div><div class="preview-item"><span>สถานะของแผน</span><strong class="${timing.critical ? 'pv-critical' : ''}">${slack}</strong></div>`;
   }
 
   function save() {
@@ -84,16 +84,16 @@
     SF.store.save({ id: draftId, name, dueDate, deps: [...dependencies], done: previous?.done || false });
     close();
     SF.app.render();
-    SF.app.toast(previous ? 'Task updated successfully.' : 'Task added to your plan.');
+    SF.app.toast(previous ? 'แก้ไขงานเรียบร้อยแล้ว' : 'เพิ่มงานในแผนเรียบร้อยแล้ว');
   }
 
   function remove() {
     const task = SF.store.find(taskId);
-    if (!task || !confirm(`Delete “${task.name}”?`)) return;
+    if (!task || !confirm(`ต้องการลบ “${task.name}” หรือไม่?`)) return;
     SF.store.remove(task.id);
     close();
     SF.app.render();
-    SF.app.toast('Task deleted.');
+    SF.app.toast('ลบงานเรียบร้อยแล้ว');
   }
 
   function init() {

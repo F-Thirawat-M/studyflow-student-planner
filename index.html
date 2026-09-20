@@ -9,7 +9,7 @@
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&family=Noto+Sans+Thai:wght@400;500;600;700;800&display=swap">
   <link rel="stylesheet" href="assets/css/base.css">
   <link rel="stylesheet" href="assets/css/components.css">
   <link rel="stylesheet" href="assets/css/views.css">
@@ -22,11 +22,12 @@
       <span>StudyFlow</span>
     </a>
     <nav class="tabs" role="tablist" aria-label="Planner views">
-      <button class="tab-btn active" data-tab="dashboard" type="button" role="tab" aria-selected="true" aria-controls="panel-dashboard">Overview</button>
-      <button class="tab-btn" data-tab="chart" type="button" role="tab" aria-selected="false" aria-controls="panel-chart">Timeline</button>
-      <button class="tab-btn" data-tab="calendar" type="button" role="tab" aria-selected="false" aria-controls="panel-calendar">Calendar</button>
+      <button class="tab-btn active" data-tab="dashboard" type="button" role="tab" aria-selected="true" aria-controls="panel-dashboard">ภาพรวม</button>
+      <button class="tab-btn" data-tab="chart" type="button" role="tab" aria-selected="false" aria-controls="panel-chart">ลำดับงาน</button>
+      <button class="tab-btn" data-tab="calendar" type="button" role="tab" aria-selected="false" aria-controls="panel-calendar">ปฏิทิน</button>
+      <button class="tab-btn" data-tab="summary" type="button" role="tab" aria-selected="false" aria-controls="panel-summary">สรุป</button>
     </nav>
-    <button class="btn btn-primary" id="add-task-btn" type="button"><span aria-hidden="true">＋</span> Add task</button>
+    <button class="btn btn-primary" id="add-task-btn" type="button"><span aria-hidden="true">＋</span> เพิ่มงาน</button>
   </header>
 
   <div id="toast-container" class="toast-container" aria-live="polite"></div>
@@ -34,53 +35,75 @@
   <main class="main-content">
     <div class="page-heading">
       <div>
-        <p class="eyebrow">Student planner</p>
-        <h1>Make every deadline manageable.</h1>
+        <p class="eyebrow">ตัวช่วยวางแผนการเรียน</p>
+        <h1>จัดการทุกงานให้เสร็จทันเวลา</h1>
       </div>
-      <p class="page-description">Plan tasks, connect dependencies, and see what needs your attention next.</p>
+      <p class="page-description">วางแผนงาน ดูลำดับที่ต้องทำ และรู้ได้ทันทีว่างานไหนควรทำต่อ</p>
     </div>
 
     <section id="panel-dashboard" class="panel active" role="tabpanel">
       <div id="up-next-slot"></div>
       <div class="stats-row" id="stats-row"></div>
       <div class="section-heading">
-        <div><p class="eyebrow">Work queue</p><h2>All tasks</h2></div>
+        <div><p class="eyebrow">รายการของคุณ</p><h2>งานทั้งหมด</h2></div>
       </div>
       <div class="table-card">
         <table class="task-table">
           <thead>
-            <tr><th class="col-check"><span class="sr-only">Complete</span></th><th>Task</th><th>Due</th><th>Depends on</th><th>Status</th></tr>
+            <tr><th class="col-check"><span class="sr-only">เสร็จแล้ว</span></th><th>งาน</th><th>กำหนดส่ง</th><th>ต้องทำหลังจาก</th><th>สถานะ</th></tr>
           </thead>
           <tbody id="task-list-body"></tbody>
         </table>
-        <p class="empty-hint" id="empty-hint" hidden>No tasks yet — add your first one.</p>
+        <p class="empty-hint" id="empty-hint" hidden>ยังไม่มีงาน — ลองเพิ่มงานแรกของคุณ</p>
       </div>
     </section>
 
     <section id="panel-chart" class="panel" role="tabpanel" hidden>
       <div class="chart-toolbar">
-        <div><p class="eyebrow">Dependency map</p><h2>Project timeline</h2></div>
-        <div class="crit-label">Critical path: <span id="chart-critical-path">—</span></div>
+        <div><p class="eyebrow">ดูว่างานไหนต้องทำก่อน</p><h2>ลำดับการทำงาน</h2></div>
+        <div class="crit-label">งานที่ห้ามล่าช้า: <span id="chart-critical-path">—</span></div>
       </div>
       <div class="chart-wrap" id="chart-wrap">
         <svg id="pert-svg"></svg>
         <div id="pert-nodes" class="pert-nodes"></div>
         <div id="chart-tooltip" class="chart-tooltip" hidden></div>
-        <p class="empty-hint" id="chart-empty-hint" hidden>Add tasks with due dates to see the chart.</p>
+        <p class="empty-hint" id="chart-empty-hint" hidden>เพิ่มงานและวันกำหนดส่งเพื่อดูลำดับงาน</p>
       </div>
     </section>
 
     <section id="panel-calendar" class="panel" role="tabpanel" hidden>
       <div class="cal-toolbar">
-        <div><p class="eyebrow">Monthly view</p><h2 id="cal-range-label" class="cal-range-label"></h2></div>
+        <div><p class="eyebrow">ดูงานรายเดือน</p><h2 id="cal-range-label" class="cal-range-label"></h2></div>
         <span class="toolbar-spacer"></span>
         <button id="cal-prev" class="btn btn-icon btn-ghost" type="button" aria-label="Previous month">‹</button>
         <button id="cal-next" class="btn btn-icon btn-ghost" type="button" aria-label="Next month">›</button>
-        <button id="cal-today" class="btn btn-ghost" type="button">Today</button>
+        <button id="cal-today" class="btn btn-ghost" type="button">วันนี้</button>
       </div>
       <div class="cal-weekdays" id="cal-weekdays"></div>
       <div class="cal-grid" id="cal-grid"></div>
       <div class="cal-critical" id="cal-critical"></div>
+    </section>
+
+    <section id="panel-summary" class="panel" role="tabpanel" hidden>
+      <div class="summary-heading">
+        <div><p class="eyebrow">ติดตามความคืบหน้า</p><h2>สรุปงานของคุณ</h2></div>
+        <p id="summary-message" class="summary-message"></p>
+      </div>
+      <div id="summary-stats" class="summary-stats"></div>
+      <div class="progress-card">
+        <div class="progress-heading"><div><p class="eyebrow">ความคืบหน้าโดยรวม</p><strong id="summary-progress-label">0%</strong></div><span id="summary-progress-detail"></span></div>
+        <div class="progress-track" role="progressbar" aria-label="ความคืบหน้าของงาน" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="summary-progress-bar"></span></div>
+      </div>
+      <div class="summary-lists">
+        <article class="summary-list-card">
+          <div class="summary-list-heading"><span class="summary-list-icon pending" aria-hidden="true">○</span><div><h3>งานที่ยังไม่เสร็จ</h3><p id="pending-count-label"></p></div></div>
+          <div id="summary-pending-list" class="summary-task-list"></div>
+        </article>
+        <article class="summary-list-card">
+          <div class="summary-list-heading"><span class="summary-list-icon completed" aria-hidden="true">✓</span><div><h3>งานที่เสร็จแล้ว</h3><p id="completed-count-label"></p></div></div>
+          <div id="summary-completed-list" class="summary-task-list"></div>
+        </article>
+      </div>
     </section>
   </main>
 </div>
@@ -88,30 +111,30 @@
 <div id="modal-backdrop" class="modal-backdrop" hidden>
   <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
     <div class="modal-header">
-      <div><p class="eyebrow">Task details</p><h2 id="modal-title">New task</h2></div>
+      <div><p class="eyebrow">รายละเอียดงาน</p><h2 id="modal-title">เพิ่มงานใหม่</h2></div>
       <button class="icon-btn" id="modal-close" type="button" aria-label="Close">✕</button>
     </div>
     <div class="modal-body">
       <label class="field">
-        <span class="field-label">Task name</span>
-        <input type="text" id="field-name" placeholder="e.g. Finish essay draft" maxlength="80" autocomplete="off">
+        <span class="field-label">ชื่องาน</span>
+        <input type="text" id="field-name" placeholder="เช่น ทำรายงานฉบับร่างให้เสร็จ" maxlength="80" autocomplete="off">
       </label>
       <label class="field">
-        <span class="field-label">Due date</span>
+        <span class="field-label">กำหนดส่ง</span>
         <input type="date" id="field-due">
-        <span class="field-hint">Choose today or a future date.</span>
+        <span class="field-hint">เลือกวันนี้หรือวันที่ในอนาคต</span>
       </label>
       <div class="field">
-        <span class="field-label">Depends on</span>
+        <span class="field-label">ต้องทำหลังจากงานใด</span>
         <div class="chip-row" id="deps-chip-row"></div>
-        <span class="field-hint">Unavailable tasks would create a circular dependency.</span>
+        <span class="field-hint">งานที่เลือกไม่ได้จะทำให้ลำดับงานวนซ้ำกัน</span>
       </div>
       <div class="preview-box" id="preview-box"></div>
     </div>
     <div class="modal-footer">
-      <button class="btn btn-primary" id="modal-save" type="button">Save task</button>
-      <button class="btn btn-ghost" id="modal-cancel" type="button">Cancel</button>
-      <button class="btn btn-danger" id="modal-delete" type="button" hidden>Delete</button>
+      <button class="btn btn-primary" id="modal-save" type="button">บันทึกงาน</button>
+      <button class="btn btn-ghost" id="modal-cancel" type="button">ยกเลิก</button>
+      <button class="btn btn-danger" id="modal-delete" type="button" hidden>ลบงาน</button>
     </div>
   </div>
 </div>
@@ -122,6 +145,7 @@
 <script defer src="assets/js/dashboard.js"></script>
 <script defer src="assets/js/chart.js"></script>
 <script defer src="assets/js/calendar.js"></script>
+<script defer src="assets/js/summary.js"></script>
 <script defer src="assets/js/modal.js"></script>
 <script defer src="assets/js/app.js"></script>
 </body>

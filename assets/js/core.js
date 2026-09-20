@@ -36,7 +36,7 @@
     max(a, b) { return this.diffDays(a, b) >= 0 ? a : b; },
     min(a, b) { return this.diffDays(a, b) <= 0 ? a : b; },
     display(value) {
-      return parseDate(value).toLocaleDateString(undefined, { day: 'numeric', month: 'short' });
+      return parseDate(value).toLocaleDateString('th-TH', { day: 'numeric', month: 'short' });
     },
     startOfWeek(value) {
       const date = new Date(value);

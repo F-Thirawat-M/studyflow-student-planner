@@ -9,6 +9,7 @@
     SF.dashboard.render(tasks, schedule);
     SF.chart.render(tasks, schedule);
     SF.calendar.render(tasks, schedule);
+    SF.summary.render(tasks, schedule);
   }
 
   function setActiveTab(tab) {
@@ -38,7 +39,7 @@
     if (action.dataset.action === 'done') {
       SF.store.setDone(action.dataset.id, true);
       render();
-      toast('Nice work — task completed.');
+      toast('เยี่ยมมาก — งานนี้เสร็จแล้ว');
     }
     if (action.dataset.action === 'edit') SF.modal.open(action.dataset.id);
   }
@@ -76,13 +77,17 @@
       const task = event.target.closest('.cal-task');
       if (task) SF.modal.open(task.dataset.id);
     });
+    select('#panel-summary').addEventListener('click', (event) => {
+      const task = event.target.closest('.summary-task[data-id]');
+      if (task) SF.modal.open(task.dataset.id);
+    });
     select('#cal-prev').addEventListener('click', () => SF.calendar.move(-1));
     select('#cal-next').addEventListener('click', () => SF.calendar.move(1));
     select('#cal-today').addEventListener('click', SF.calendar.today);
     render();
 
     const urgent = SF.store.all().filter((task) => !task.done && SF.date.diffDays(task.dueDate, SF.date.today()) <= 0);
-    if (urgent.length) toast(`${urgent.length} task${urgent.length === 1 ? ' is' : 's are'} due or overdue.`, true);
+    if (urgent.length) toast(`มี ${urgent.length} งานที่ครบกำหนดหรือเลยกำหนดแล้ว`, true);
   }
 
   SF.app = { init, render, toast, setActiveTab };
