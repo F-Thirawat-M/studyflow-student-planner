@@ -9,17 +9,18 @@
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&family=Noto+Sans+Thai:wght@400;500;600;700;800&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Mali:wght@400;500;600;700&family=Noto+Sans+Thai:wght@400;500;600;700;800&display=swap">
   <link rel="stylesheet" href="assets/css/base.css">
   <link rel="stylesheet" href="assets/css/components.css">
   <link rel="stylesheet" href="assets/css/views.css">
+  <link rel="stylesheet" href="assets/css/theme-playful.css">
 </head>
 <body>
 <div class="app-shell">
   <header class="topbar">
     <a class="brand" href="#" aria-label="StudyFlow home">
-      <span class="brand-mark" aria-hidden="true">S</span>
-      <span>StudyFlow</span>
+      <span class="brand-mark" aria-hidden="true">✦</span>
+      <span>study flow</span>
     </a>
     <nav class="tabs" role="tablist" aria-label="Planner views">
       <button class="tab-btn active" data-tab="dashboard" type="button" role="tab" aria-selected="true" aria-controls="panel-dashboard">ภาพรวม</button>
@@ -34,11 +35,33 @@
 
   <main class="main-content">
     <div class="page-heading">
-      <div>
+      <div class="hero-copy">
         <p class="eyebrow">ตัวช่วยวางแผนการเรียน</p>
         <h1>จัดการทุกงานให้เสร็จทันเวลา</h1>
+        <p class="page-description">วางแผนงาน ดูลำดับที่ต้องทำ และรู้ได้ทันทีว่างานไหนควรทำต่อ</p>
+        <div class="hero-stickers" aria-hidden="true"><span>✎ จดไว้</span><span>✓ ทำทีละอย่าง</span></div>
       </div>
-      <p class="page-description">วางแผนงาน ดูลำดับที่ต้องทำ และรู้ได้ทันทีว่างานไหนควรทำต่อ</p>
+      <div class="study-buddy" aria-hidden="true">
+        <span class="buddy-spark spark-one">✦</span>
+        <span class="buddy-spark spark-two">✿</span>
+        <svg viewBox="0 0 250 190" role="img">
+          <path d="M42 151h152l9 20H31z" fill="#7a6cf6" stroke="#25213b" stroke-width="4" stroke-linejoin="round"/>
+          <path d="M54 127h139l1 24H42z" fill="#51c5a8" stroke="#25213b" stroke-width="4" stroke-linejoin="round"/>
+          <path d="M72 103h123l-2 24H54z" fill="#ffcf56" stroke="#25213b" stroke-width="4" stroke-linejoin="round"/>
+          <path d="M86 50c0-24 17-38 40-38 26 0 43 17 43 43v48H86z" fill="#3c315d" stroke="#25213b" stroke-width="4"/>
+          <path d="M94 61c0-23 13-38 34-38 19 0 33 15 33 37v43H94z" fill="#ffb895" stroke="#25213b" stroke-width="4"/>
+          <path d="M94 53c5-25 20-35 38-31 12 3 22 13 27 28-17 1-28-6-35-17-5 12-15 19-30 20z" fill="#3c315d"/>
+          <circle cx="113" cy="64" r="3.5" fill="#25213b"/><circle cx="145" cy="64" r="3.5" fill="#25213b"/>
+          <path d="M120 78c7 6 14 6 21 0" fill="none" stroke="#25213b" stroke-width="3" stroke-linecap="round"/>
+          <path d="M85 104c17-13 31-18 43-18 15 0 31 6 47 18l-8 31H91z" fill="#ff758f" stroke="#25213b" stroke-width="4" stroke-linejoin="round"/>
+          <path d="M119 91l10 11 10-11" fill="none" stroke="#fff8ec" stroke-width="4" stroke-linecap="round"/>
+          <path d="M78 100c-7-8-16-10-23-4-7 7-5 17 3 24l25 18 10-14z" fill="#ffb895" stroke="#25213b" stroke-width="4" stroke-linejoin="round"/>
+          <path d="M177 103l21-34 8 5-17 39z" fill="#fff8ec" stroke="#25213b" stroke-width="4" stroke-linejoin="round"/>
+          <path d="M197 69l6-11 8 5-5 11z" fill="#ff758f" stroke="#25213b" stroke-width="4"/>
+          <path d="M169 104c10-4 20 0 21 9 1 8-5 15-15 17l-15 2z" fill="#ffb895" stroke="#25213b" stroke-width="4"/>
+        </svg>
+        <span class="buddy-note">ไปต่ออีกนิด!</span>
+      </div>
     </div>
 
     <section id="panel-dashboard" class="panel active" role="tabpanel">
