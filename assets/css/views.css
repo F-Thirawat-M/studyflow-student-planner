@@ -114,8 +114,11 @@
 .summary-task { width: 100%; display: flex; align-items: center; gap: 11px; border: 0; border-bottom: 1px solid var(--line); background: transparent; padding: 13px 18px; text-align: left; cursor: pointer; }
 .summary-task:last-child { border-bottom: 0; }
 .summary-task:hover { background: var(--surface-subtle); }
-.summary-task-check { width: 20px; height: 20px; display: grid; flex: none; place-items: center; border: 1.5px solid var(--line-strong); border-radius: 6px; color: #fff; font-size: 11px; font-weight: 800; }
-.summary-task-check.done { border-color: var(--success); background: var(--success); }
+.summary-check { width: 20px; height: 20px; display: grid; flex: none; appearance: none; place-content: center; border: 1.5px solid var(--line-strong); border-radius: 6px; background: #fff; cursor: pointer; }
+.summary-check::after { content: '✓'; color: #fff; font-size: 12px; font-weight: 800; opacity: 0; transform: scale(.5); transition: opacity .15s, transform .15s; }
+.summary-check:checked { border-color: var(--success); background: var(--success); }
+.summary-check:checked::after { opacity: 1; transform: scale(1); }
+.summary-check:focus-visible { outline: 3px solid rgba(99, 91, 255, .24); outline-offset: 2px; }
 .summary-task-info { min-width: 0; flex: 1; }
 .summary-task-info strong { display: block; overflow: hidden; font-size: 13px; text-overflow: ellipsis; white-space: nowrap; }
 .summary-task-info small { display: block; margin-top: 2px; color: var(--muted); font-size: 10px; }

@@ -13,6 +13,7 @@
   }
 
   function setActiveTab(tab) {
+    select('.page-heading').hidden = tab !== 'dashboard';
     selectAll('.tab-btn').forEach((button) => {
       const active = button.dataset.tab === tab;
       button.classList.toggle('active', active);
@@ -31,6 +32,11 @@
     element.textContent = message;
     select('#toast-container').appendChild(element);
     setTimeout(() => element.remove(), 4000);
+  }
+
+  function notifyUrgentTasks() {
+    const urgent = SF.store.all().filter((task) => !task.done && SF.date.diffDays(task.dueDate, SF.date.today()) <= 0);
+    if (urgent.length) toast(`มี ${urgent.length} งานที่ครบกำหนดหรือเลยกำหนดแล้ว`, true);
   }
 
   function handleAction(event) {
@@ -77,19 +83,30 @@
       const task = event.target.closest('.cal-task');
       if (task) SF.modal.open(task.dataset.id);
     });
+    select('#panel-summary').addEventListener('change', (event) => {
+      if (!event.target.matches('.summary-check')) return;
+      SF.store.setDone(event.target.dataset.id, event.target.checked);
+      render();
+      toast(event.target.checked ? 'เยี่ยมมาก — งานนี้เสร็จแล้ว' : 'ย้ายงานกลับไปยังรายการที่ยังไม่เสร็จแล้ว');
+    });
     select('#panel-summary').addEventListener('click', (event) => {
+      if (event.target.matches('.summary-check')) return;
       const task = event.target.closest('.summary-task[data-id]');
       if (task) SF.modal.open(task.dataset.id);
+    });
+    select('#panel-summary').addEventListener('keydown', (event) => {
+      const task = event.target.closest('.summary-task[data-id]');
+      if (task && !event.target.matches('.summary-check') && (event.key === 'Enter' || event.key === ' ')) {
+        event.preventDefault();
+        SF.modal.open(task.dataset.id);
+      }
     });
     select('#cal-prev').addEventListener('click', () => SF.calendar.move(-1));
     select('#cal-next').addEventListener('click', () => SF.calendar.move(1));
     select('#cal-today').addEventListener('click', SF.calendar.today);
-    render();
-
-    const urgent = SF.store.all().filter((task) => !task.done && SF.date.diffDays(task.dueDate, SF.date.today()) <= 0);
-    if (urgent.length) toast(`มี ${urgent.length} งานที่ครบกำหนดหรือเลยกำหนดแล้ว`, true);
+    SF.auth.init();
   }
 
-  SF.app = { init, render, toast, setActiveTab };
+  SF.app = { init, render, toast, setActiveTab, notifyUrgentTasks };
   document.addEventListener('DOMContentLoaded', init);
 })(window.StudyFlow);
