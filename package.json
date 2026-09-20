@@ -1,0 +1,9 @@
+{
+  "name": "studyflow-student-planner",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "test": "node --test --test-isolation=none tests/schedule-core.test.js",
+    "start": "python -m http.server 8765"
+  }
+}

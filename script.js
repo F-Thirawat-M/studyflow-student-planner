@@ -3,27 +3,14 @@
 
   const STORAGE_KEY = 'my-deadlines-tasks-v1';
   const NEW_TASK_SENTINEL = '__new__';
+  const {
+    addDays, computeSchedule, criticalChain, diffDays, formatDate,
+    maxDate, parseDate, pertStats, todayStr,
+  } = window.ScheduleCore;
 
   // ---------------- date helpers ----------------
-  function formatDate(d) {
-    const y = d.getFullYear(), m = String(d.getMonth() + 1).padStart(2, '0'), day = String(d.getDate()).padStart(2, '0');
-    return `${y}-${m}-${day}`;
-  }
-  function todayStr() { return formatDate(new Date()); }
-  function parseDate(s) {
-    const [y, m, d] = s.split('-').map(Number);
-    return new Date(y, m - 1, d);
-  }
-  function addDays(s, n) {
-    const d = parseDate(s);
-    d.setDate(d.getDate() + n);
-    return formatDate(d);
-  }
-  function diffDays(a, b) { return Math.round((parseDate(a) - parseDate(b)) / 86400000); }
-  function maxDate(a, b) { return diffDays(a, b) >= 0 ? a : b; }
-  function minDate(a, b) { return diffDays(a, b) <= 0 ? a : b; }
   function fmtDisplay(s) {
-    return parseDate(s).toLocaleDateString(undefined, { day: 'numeric', month: 'short' });
+    return parseDate(s).toLocaleDateString('th-TH', { day: 'numeric', month: 'short' });
   }
   function startOfWeek(date) {
     const d = new Date(date);
@@ -42,103 +29,30 @@
   let modalTaskId = null;   // id of task being edited, or NEW_TASK_SENTINEL, or null when closed
   let modalDraftId = null;  // stable id used for a brand-new task while its modal is open
   let modalDeps = [];
+  const expandedCalendarDays = new Set();
 
   function loadTasks() {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) return JSON.parse(raw);
+      if (!raw) return [];
+      const parsed = JSON.parse(raw);
+      if (!Array.isArray(parsed)) throw new Error('Stored tasks must be an array');
+      return parsed
+        .filter(t => t && typeof t.id === 'string' && typeof t.name === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(t.dueDate))
+        .map(t => ({
+          id: t.id,
+          name: t.name,
+          dueDate: t.dueDate,
+          deps: Array.isArray(t.deps) ? t.deps.filter(id => typeof id === 'string') : [],
+          done: Boolean(t.done),
+          estimates: pertStats(t),
+        }));
     } catch (e) { /* ignore corrupt storage */ }
     return [];
   }
   function saveTasks() { localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks)); }
 
   function byId(id) { return tasks.find(t => t.id === id); }
-
-  // ---------------- scheduling (CPM-ish over due dates) ----------------
-  function topoOrder(list) {
-    const map = new Map(list.map(t => [t.id, t]));
-    const seen = new Set();
-    const order = [];
-    function visit(id) {
-      if (seen.has(id)) return;
-      seen.add(id);
-      const t = map.get(id);
-      if (t) for (const d of t.deps) visit(d);
-      order.push(id);
-    }
-    for (const t of list) visit(t.id);
-    return order;
-  }
-
-  function computeSchedule(list) {
-    const map = new Map(list.map(t => [t.id, t]));
-    const order = topoOrder(list);
-    const today = todayStr();
-    const asap = {};
-    for (const id of order) {
-      const t = map.get(id);
-      if (!t) continue;
-      if (!t.deps.length) { asap[id] = today; continue; }
-      let latest = null;
-      for (const d of t.deps) {
-        const v = asap[d] !== undefined ? addDays(asap[d], 1) : today;
-        latest = latest === null ? v : maxDate(latest, v);
-      }
-      asap[id] = latest;
-    }
-
-    const dependents = new Map(list.map(t => [t.id, []]));
-    for (const t of list) for (const d of t.deps) if (dependents.has(d)) dependents.get(d).push(t.id);
-
-    const alap = {};
-    for (const id of [...order].reverse()) {
-      const t = map.get(id);
-      if (!t) continue;
-      const deps2 = dependents.get(id) || [];
-      if (!deps2.length) { alap[id] = t.dueDate; continue; }
-      let earliest = null;
-      for (const u of deps2) {
-        const v = alap[u] !== undefined ? addDays(alap[u], -1) : t.dueDate;
-        earliest = earliest === null ? v : minDate(earliest, v);
-      }
-      alap[id] = minDate(earliest, t.dueDate);
-    }
-
-    const result = {};
-    for (const t of list) {
-      const slack = diffDays(alap[t.id], asap[t.id]);
-      result[t.id] = { asap: asap[t.id], alap: alap[t.id], slack, critical: slack <= 0 };
-    }
-    return result;
-  }
-
-  function criticalChain(list, schedule) {
-    const map = new Map(list.map(t => [t.id, t]));
-    const criticalIds = list.filter(t => !t.done && schedule[t.id] && schedule[t.id].critical).map(t => t.id);
-    const criticalSet = new Set(criticalIds);
-    const childrenOf = new Map(criticalIds.map(id => [id, []]));
-    for (const t of list) {
-      if (!criticalSet.has(t.id)) continue;
-      for (const d of t.deps) if (criticalSet.has(d)) childrenOf.get(d).push(t.id);
-    }
-    const memo = new Map();
-    function longestFrom(id) {
-      if (memo.has(id)) return memo.get(id);
-      let best = [id];
-      for (const k of childrenOf.get(id) || []) {
-        const path = longestFrom(k);
-        if (path.length + 1 > best.length) best = [id, ...path];
-      }
-      memo.set(id, best);
-      return best;
-    }
-    let bestOverall = [];
-    for (const id of criticalIds) {
-      const p = longestFrom(id);
-      if (p.length > bestOverall.length) bestOverall = p;
-    }
-    return bestOverall.map(id => map.get(id));
-  }
 
   function dependsOnTransitively(fromId, targetId, list) {
     const map = new Map(list.map(t => [t.id, t]));
@@ -188,7 +102,7 @@
   function renderUpNext(schedule) {
     const open = tasks.filter(t => !t.done).sort((a, b) => diffDays(a.dueDate, b.dueDate));
     if (!open.length) {
-      upNextSlot.innerHTML = `<div class="up-next is-empty"><div class="un-title">You're all caught up 🎉</div></div>`;
+      upNextSlot.innerHTML = `<div class="up-next is-empty"><div class="un-title">จัดการงานครบแล้ว 🎉</div></div>`;
       return;
     }
     const t = open[0];
@@ -196,22 +110,22 @@
     const urgent = days <= 1;
     const sched = schedule[t.id];
     let metaText;
-    if (days < 0) metaText = `overdue by ${-days} day${-days === 1 ? '' : 's'}`;
-    else if (days === 0) metaText = 'due today';
-    else if (days === 1) metaText = 'due tomorrow';
-    else metaText = `due in ${days} days`;
-    if (sched && sched.critical) metaText += ' · ต้องส่งวันนี้';
+    if (days < 0) metaText = `เกินกำหนด ${-days} วัน`;
+    else if (days === 0) metaText = 'ส่งวันนี้';
+    else if (days === 1) metaText = 'ส่งพรุ่งนี้';
+    else metaText = `เหลือ ${days} วัน`;
+    if (sched && sched.critical) metaText += ' · อยู่บนเส้นทางวิกฤต';
 
     upNextSlot.innerHTML = `
       <div class="up-next ${urgent ? 'is-urgent' : ''}">
         <div class="un-main">
-          <div class="un-tag">${urgent ? 'up next · urgent' : 'up next'}</div>
+          <div class="un-tag">${urgent ? 'งานถัดไป · เร่งด่วน' : 'งานถัดไป'}</div>
           <div class="un-title">${escapeHtml(t.name)}</div>
           <div class="un-meta">${metaText}</div>
         </div>
         <div class="un-actions">
-          <button class="btn btn-primary" data-action="done" data-id="${t.id}" type="button">mark done</button>
-          <button class="btn btn-ghost" data-action="edit" data-id="${t.id}" type="button">edit</button>
+          <button class="btn btn-primary" data-action="done" data-id="${t.id}" type="button">เสร็จแล้ว</button>
+          <button class="btn btn-ghost" data-action="edit" data-id="${t.id}" type="button">แก้ไข</button>
         </div>
       </div>`;
     upNextSlot.querySelector('[data-action="done"]').addEventListener('click', () => toggleDone(t.id, true));
@@ -224,10 +138,10 @@
     const allDoneBy = open.length ? open.reduce((m, t) => maxDate(m, t.dueDate), open[0].dueDate) : null;
     const chain = criticalChain(tasks, schedule);
     statsRow.innerHTML = `
-      <div class="stat-tile"><div class="stat-label">tasks left</div><div class="stat-value">${open.length}</div></div>
-      <div class="stat-tile"><div class="stat-label">all done by</div><div class="stat-value">${allDoneBy ? fmtDisplay(allDoneBy) : '—'}</div></div>
-      <div class="stat-tile crit"><div class="stat-label">ต้องส่งวันนี้</div><div class="stat-value">${chain.length ? chain.map(t => escapeHtml(t.name)).join(' → ') : '—'}</div></div>
-      <div class="stat-tile"><div class="stat-label">done</div><div class="stat-value">${doneCount}/${tasks.length}</div></div>
+      <div class="stat-tile"><div class="stat-label">งานที่เหลือ</div><div class="stat-value">${open.length}</div></div>
+      <div class="stat-tile"><div class="stat-label">กำหนดเสร็จทั้งหมด</div><div class="stat-value">${allDoneBy ? fmtDisplay(allDoneBy) : '—'}</div></div>
+      <div class="stat-tile crit"><div class="stat-label">เส้นทางวิกฤต</div><div class="stat-value">${chain.length ? chain.map(t => escapeHtml(t.name)).join(' → ') : '—'}</div></div>
+      <div class="stat-tile"><div class="stat-label">เสร็จแล้ว</div><div class="stat-value">${doneCount}/${tasks.length}</div></div>
     `;
   }
 
@@ -240,9 +154,12 @@
     taskListBody.innerHTML = sorted.map(t => {
       const sched = schedule[t.id];
       const after = t.deps.length ? t.deps.map(id => (byId(id) ? byId(id).name : '?')).join(', ') : '—';
-      let statusLabel = 'normal', statusClass = '';
-      if (t.done) { statusLabel = 'done'; statusClass = 'done'; }
-      else if (sched && sched.critical) { statusLabel = 'ต้องส่งวันนี้'; statusClass = 'critical'; }
+      const days = diffDays(t.dueDate, todayStr());
+      let statusLabel = 'ปกติ', statusClass = '';
+      if (t.done) { statusLabel = 'เสร็จแล้ว'; statusClass = 'done'; }
+      else if (days < 0) { statusLabel = 'เกินกำหนด'; statusClass = 'overdue'; }
+      else if (days === 0) { statusLabel = 'ส่งวันนี้'; statusClass = 'due-today'; }
+      else if (sched && sched.critical) { statusLabel = 'วิกฤต'; statusClass = 'critical'; }
       return `
         <tr data-id="${t.id}" class="${t.done ? 'is-done' : ''}">
           <td class="col-check"><input type="checkbox" class="row-check" ${t.done ? 'checked' : ''} data-id="${t.id}"></td>
@@ -328,7 +245,7 @@
                    style="left:${p.x}px;top:${p.y}px;width:${NODE_W}px"
                    data-id="${t.id}">
                 <div class="pn-name">${escapeHtml(t.name)}</div>
-                <div class="pn-due">due ${fmtDisplay(t.dueDate)}</div>
+                <div class="pn-due">ส่ง ${fmtDisplay(t.dueDate)} · ${sched.expected.toFixed(1)} วัน</div>
               </div>`;
     }).join('');
 
@@ -344,8 +261,8 @@
     const t = byId(id);
     const sched = schedule[id];
     if (!t || !sched) return;
-    const slackText = sched.slack < 0 ? `${-sched.slack} day(s) behind` : `${sched.slack} day(s) slack`;
-    chartTooltip.innerHTML = `<b>${escapeHtml(t.name)}</b><br>due ${fmtDisplay(t.dueDate)} · ${slackText}${sched.critical ? '<br>ต้องส่งวันนี้' : ''}`;
+    const slackText = sched.slack < 0 ? `ช้ากว่าแผน ${-sched.slack} วัน` : `เวลาสำรอง ${sched.slack} วัน`;
+    chartTooltip.innerHTML = `<b>${escapeHtml(t.name)}</b><br>ส่ง ${fmtDisplay(t.dueDate)} · คาดการณ์ ${sched.expected.toFixed(1)} วัน<br>${slackText}${sched.critical ? '<br>อยู่บนเส้นทางวิกฤต' : ''}`;
     chartTooltip.hidden = false;
     positionTooltip(e);
   }
@@ -372,11 +289,11 @@
     }
     while (days.length > 35 && days.slice(-7).every(d => d > monthEnd)) days.splice(-7, 7);
 
-    calRangeLabel.textContent = monthStart.toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
+    calRangeLabel.textContent = monthStart.toLocaleDateString('th-TH', { month: 'long', year: 'numeric' });
 
     if (!calWeekdayRow.children.length) {
       calWeekdayRow.innerHTML = days.slice(0, 7)
-        .map(d => `<div class="cal-weekday">${d.toLocaleDateString(undefined, { weekday: 'short' })}</div>`)
+        .map(d => `<div class="cal-weekday">${d.toLocaleDateString('th-TH', { weekday: 'short' })}</div>`)
         .join('');
     }
 
@@ -385,15 +302,16 @@
       const ds = formatDate(d);
       const inMonth = d.getMonth() === monthStart.getMonth();
       const dayTasks = tasks.filter(t => t.dueDate === ds).sort((a, b) => a.name.localeCompare(b.name));
-      const shown = dayTasks.slice(0, MAX_CHIPS_PER_DAY);
+      const expanded = expandedCalendarDays.has(ds);
+      const shown = expanded ? dayTasks : dayTasks.slice(0, MAX_CHIPS_PER_DAY);
       const extra = dayTasks.length - shown.length;
       const chips = shown.map(t => {
         const sched = schedule[t.id];
         const critical = !t.done && sched && sched.critical;
         return `<div class="cal-task ${critical ? 'critical' : ''} ${t.done ? 'done' : ''}" data-id="${t.id}">${escapeHtml(t.name)}</div>`;
-      }).join('') + (extra > 0 ? `<div class="cal-more">+${extra} more</div>` : '');
+      }).join('') + (extra > 0 ? `<button type="button" class="cal-more" data-date="${ds}">+${extra} งาน</button>` : '');
       return `<div class="cal-day ${ds === todayS ? 'is-today' : ''} ${inMonth ? '' : 'other-month'}">
-                <div class="cal-day-label">${d.getDate()}${ds === todayS ? ' · today' : ''}</div>
+                <div class="cal-day-label">${d.getDate()}${ds === todayS ? ' · วันนี้' : ''}</div>
                 ${chips}
               </div>`;
     }).join('');
@@ -401,11 +319,17 @@
     calGrid.querySelectorAll('.cal-task').forEach(el => {
       el.addEventListener('click', () => openModal(el.dataset.id));
     });
+    calGrid.querySelectorAll('.cal-more').forEach(el => {
+      el.addEventListener('click', () => {
+        expandedCalendarDays.add(el.dataset.date);
+        renderCalendar(schedule);
+      });
+    });
 
     const chain = criticalChain(tasks, schedule);
     calCritical.innerHTML = chain.length
-      ? `ต้องส่งวันนี้: <b>${chain.map(t => escapeHtml(t.name)).join(' → ')}</b> — slip one of these and everything moves`
-      : 'no critical chain yet — add dependent tasks to see one';
+      ? `เส้นทางวิกฤต: <b>${chain.map(t => escapeHtml(t.name)).join(' → ')}</b> — หากงานใดล่าช้า งานถัดไปจะเลื่อนตาม`
+      : 'ยังไม่มีเส้นทางวิกฤต — เพิ่มงานที่มีลำดับต่อเนื่องเพื่อดูผล';
   }
 
   // ---------------- toast ----------------
@@ -420,7 +344,7 @@
   function checkUrgentToast(schedule) {
     const urgent = tasks.filter(t => !t.done && diffDays(t.dueDate, todayStr()) <= 0);
     if (urgent.length) {
-      showToast(`⚠ You have ${urgent.length} task${urgent.length === 1 ? '' : 's'} due today or overdue`, true);
+      showToast(`⚠ มี ${urgent.length} งานที่ส่งวันนี้หรือเกินกำหนด`, true);
     }
   }
 
@@ -429,6 +353,11 @@
   const modalTitle = $('#modal-title');
   const fieldName = $('#field-name');
   const fieldDue = $('#field-due');
+  const fieldOptimistic = $('#field-optimistic');
+  const fieldMostLikely = $('#field-most-likely');
+  const fieldPessimistic = $('#field-pessimistic');
+  const dateError = $('#date-error');
+  const estimateError = $('#estimate-error');
   const depsChipRow = $('#deps-chip-row');
   const previewBox = $('#preview-box');
   const modalDeleteBtn = $('#modal-delete');
@@ -439,10 +368,16 @@
     modalDraftId = editing ? editing.id : uid();
     modalDeps = editing ? [...editing.deps] : [];
 
-    modalTitle.textContent = editing ? 'edit task' : 'new task';
+    const estimates = pertStats(editing || {});
+    modalTitle.textContent = editing ? 'แก้ไขงาน' : 'เพิ่มงาน';
     fieldName.value = editing ? editing.name : '';
     fieldDue.value = editing ? editing.dueDate : '';
+    fieldOptimistic.value = estimates.optimistic;
+    fieldMostLikely.value = estimates.mostLikely;
+    fieldPessimistic.value = estimates.pessimistic;
     fieldDue.min = todayStr();
+    dateError.hidden = true;
+    estimateError.hidden = true;
     modalDeleteBtn.hidden = !editing;
 
     renderDepsChipRow();
@@ -466,7 +401,7 @@
       const wouldLoop = selfRealId && dependsOnTransitively(c.id, selfRealId, tasks);
       const cls = wouldLoop ? 'disabled' : (selected ? 'selected' : '');
       return `<button type="button" class="dep-chip ${cls}" data-id="${c.id}" title="${escapeHtml(c.name)}" ${wouldLoop ? 'disabled' : ''}>${escapeHtml(c.name)}</button>`;
-    }).join('') || '<span class="field-hint">no other tasks yet</span>';
+    }).join('') || '<span class="field-hint">ยังไม่มีงานอื่น</span>';
 
     depsChipRow.querySelectorAll('.dep-chip:not(.disabled)').forEach(btn => {
       btn.addEventListener('click', () => {
@@ -480,25 +415,38 @@
   }
 
   function renderPreview() {
-    const name = fieldName.value.trim() || 'this task';
+    const name = fieldName.value.trim() || 'งานนี้';
     const due = fieldDue.value;
     if (!due) {
-      previewBox.innerHTML = `<div class="pv-line">pick a due date to see the schedule preview</div>`;
+      previewBox.innerHTML = `<div class="pv-line">เลือกวันส่งเพื่อดูตัวอย่างแผนงาน</div>`;
       return;
     }
-    const draft = { id: modalDraftId, name, dueDate: due, deps: modalDeps, done: false };
+    const estimates = readEstimateInputs(false) || { optimistic: 1, mostLikely: 1, pessimistic: 1 };
+    const draft = { id: modalDraftId, name, dueDate: due, deps: modalDeps, done: false, estimates };
     const others = tasks.filter(t => t.id !== modalDraftId);
     const tempList = [...others, draft];
     const schedule = computeSchedule(tempList);
     const sched = schedule[modalDraftId];
     const slackText = sched.slack < 0
-      ? `<span class="pv-critical">${-sched.slack} day(s) behind schedule</span>`
-      : `slack ${sched.slack} day(s)`;
+      ? `<span class="pv-critical">ช้ากว่าแผน ${-sched.slack} วัน</span>`
+      : `เวลาสำรอง ${sched.slack} วัน`;
     previewBox.innerHTML = `
-      <div class="pv-line">earliest realistic finish: ${fmtDisplay(sched.asap)}</div>
+      <div class="pv-line">ระยะเวลาคาดการณ์ PERT: ${sched.expected.toFixed(1)} วัน</div>
+      <div class="pv-line">เสร็จเร็วที่สุด: ${fmtDisplay(sched.asap)}</div>
       <div class="pv-line">${slackText}</div>
-      <div class="pv-line ${sched.critical ? 'pv-critical' : ''}">${sched.critical ? 'ต้องส่งวันนี้' : 'ไม่ต้องส่งวันนี้'}</div>
+      <div class="pv-line ${sched.critical ? 'pv-critical' : ''}">${sched.critical ? 'อยู่บนเส้นทางวิกฤต' : 'ไม่อยู่บนเส้นทางวิกฤต'}</div>
     `;
+  }
+
+  function readEstimateInputs(showError) {
+    const optimistic = Number(fieldOptimistic.value);
+    const mostLikely = Number(fieldMostLikely.value);
+    const pessimistic = Number(fieldPessimistic.value);
+    const valid = [optimistic, mostLikely, pessimistic].every(n => Number.isInteger(n) && n >= 1 && n <= 365)
+      && optimistic <= mostLikely && mostLikely <= pessimistic;
+    estimateError.hidden = valid || !showError;
+    estimateError.textContent = valid ? '' : 'กรอกจำนวนวัน 1–365 และให้ O ≤ M ≤ P';
+    return valid ? { optimistic, mostLikely, pessimistic } : null;
   }
 
   function saveModal() {
@@ -506,13 +454,23 @@
     const due = fieldDue.value;
     if (!name) { fieldName.focus(); return; }
     if (!due) { fieldDue.focus(); return; }
+    if (due < todayStr()) {
+      dateError.textContent = 'กำหนดส่งต้องไม่เร็วกว่าวันนี้';
+      dateError.hidden = false;
+      fieldDue.focus();
+      return;
+    }
+    dateError.hidden = true;
+    const estimates = readEstimateInputs(true);
+    if (!estimates) { fieldOptimistic.focus(); return; }
     const editing = byId(modalTaskId);
     if (editing) {
       editing.name = name;
       editing.dueDate = due;
       editing.deps = [...modalDeps];
+      editing.estimates = estimates;
     } else {
-      tasks.push({ id: modalDraftId, name, dueDate: due, deps: [...modalDeps], done: false });
+      tasks.push({ id: modalDraftId, name, dueDate: due, deps: [...modalDeps], done: false, estimates });
     }
     saveTasks();
     closeModal();
@@ -522,7 +480,7 @@
   function deleteModalTask() {
     const editing = byId(modalTaskId);
     if (!editing) return;
-    if (!confirm(`Delete "${editing.name}"?`)) return;
+    if (!confirm(`ลบงาน "${editing.name}" หรือไม่?`)) return;
     tasks = tasks.filter(t => t.id !== editing.id);
     tasks.forEach(t => { t.deps = t.deps.filter(d => d !== editing.id); });
     saveTasks();
@@ -541,7 +499,11 @@
   // ---------------- tabs ----------------
   function setActiveTab(tab) {
     activeTab = tab;
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+    document.querySelectorAll('.tab-btn').forEach(b => {
+      const selected = b.dataset.tab === tab;
+      b.classList.toggle('active', selected);
+      b.setAttribute('aria-selected', String(selected));
+    });
     document.querySelectorAll('.panel').forEach(p => p.classList.toggle('active', p.id === `panel-${tab}`));
   }
 
@@ -570,7 +532,10 @@
   modalDeleteBtn.addEventListener('click', deleteModalTask);
   modalBackdrop.addEventListener('click', (e) => { if (e.target === modalBackdrop) closeModal(); });
   fieldName.addEventListener('input', renderPreview);
-  fieldDue.addEventListener('input', renderPreview);
+  fieldDue.addEventListener('input', () => { dateError.hidden = true; renderPreview(); });
+  [fieldOptimistic, fieldMostLikely, fieldPessimistic].forEach(field => {
+    field.addEventListener('input', () => { estimateError.hidden = true; renderPreview(); });
+  });
 
   $('#cal-prev').addEventListener('click', () => { calMonthStart.setMonth(calMonthStart.getMonth() - 1); renderCalendar(computeSchedule(tasks)); });
   $('#cal-next').addEventListener('click', () => { calMonthStart.setMonth(calMonthStart.getMonth() + 1); renderCalendar(computeSchedule(tasks)); });

@@ -100,6 +100,8 @@ body{
   color:var(--muted);text-transform:uppercase;letter-spacing:.02em;
 }
 .status-chip.critical{border-color:var(--critical);color:var(--critical)}
+.status-chip.overdue{border-color:var(--critical);background:#fbeceb;color:var(--critical)}
+.status-chip.due-today{border-color:#b66b00;background:#fff5df;color:#8a5100}
 .status-chip.done{color:#a39e94}
 
 .empty-hint{text-align:center;color:var(--muted);padding:30px 0;font:18px Caveat,cursive}
@@ -160,7 +162,8 @@ body{
 }
 .cal-task.critical{border-color:var(--critical);color:var(--critical)}
 .cal-task.done{opacity:.45;text-decoration:line-through}
-.cal-more{font:14px Caveat,cursive;color:var(--muted)}
+.cal-more{border:0;background:transparent;padding:0;text-align:left;font:14px Caveat,cursive;color:var(--muted);cursor:pointer}
+.cal-more:hover{color:var(--ink);text-decoration:underline}
 .cal-critical{margin-top:14px;padding:12px 14px;background:var(--surface);border:1.5px dashed var(--dash);border-radius:8px;font:16px Caveat,cursive;color:var(--muted)}
 .cal-critical b{color:var(--critical);font-family:Kalam,cursive}
 
@@ -181,6 +184,13 @@ body{
 }
 .field input:focus{outline:none;box-shadow:0 0 0 2px rgba(31,29,26,.15)}
 .field-hint{font:14px Caveat,cursive;color:var(--muted)}
+.field-error{font:13px system-ui,sans-serif;color:var(--critical)}
+.pert-fields{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;border:1.5px dashed var(--dash);border-radius:var(--radius);padding:10px 12px;margin:0}
+.pert-fields legend{padding:0 5px;font:15px Caveat,cursive;color:var(--muted)}
+.mini-field{display:flex;flex-direction:column;gap:4px;min-width:0}
+.mini-field span{font:12px system-ui,sans-serif;color:var(--muted)}
+.mini-field input{width:100%;border:1.5px solid var(--border);border-radius:var(--radius);padding:7px;font:14px Kalam,cursive}
+.pert-hint,.pert-fields .field-error{grid-column:1/-1}
 .chip-row{display:flex;flex-wrap:wrap;gap:7px}
 .dep-chip{
   border:1.5px dashed var(--dash);background:#fff;border-radius:var(--radius);padding:5px 11px;font:600 12px Kalam,cursive;
