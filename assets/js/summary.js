@@ -17,11 +17,11 @@
     const needsAttention = !task.done && schedule[task.id]?.critical;
     const statusClass = overdue ? 'overdue' : task.done ? 'completed' : needsAttention ? 'attention' : '';
     const statusText = overdue ? 'เลยกำหนด' : task.done ? 'เสร็จแล้ว' : needsAttention ? 'ห้ามล่าช้า' : 'ตามแผน';
-    return `<button class="summary-task" data-id="${task.id}" type="button">
-      <span class="summary-task-check ${task.done ? 'done' : ''}" aria-hidden="true">${task.done ? '✓' : ''}</span>
+    return `<div class="summary-task" data-id="${task.id}" role="button" tabindex="0">
+      <input class="summary-check" type="checkbox" data-id="${task.id}" aria-label="ทำเครื่องหมายว่า ${escapeHtml(task.name)} เสร็จแล้ว" ${task.done ? 'checked' : ''}>
       <span class="summary-task-info"><strong>${escapeHtml(task.name)}</strong><small>${dueLabel(task)}</small></span>
       <span class="summary-task-status ${statusClass}">${statusText}</span>
-    </button>`;
+    </div>`;
   }
 
   function emptyState(message) {

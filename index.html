@@ -14,9 +14,62 @@
   <link rel="stylesheet" href="assets/css/components.css">
   <link rel="stylesheet" href="assets/css/views.css">
   <link rel="stylesheet" href="assets/css/theme-playful.css">
+  <link rel="stylesheet" href="assets/css/auth.css">
 </head>
 <body>
-<div class="app-shell">
+<section id="auth-screen" class="auth-screen" aria-labelledby="auth-heading">
+  <div class="auth-card">
+    <div class="auth-intro">
+      <a class="auth-brand" href="#" aria-label="StudyFlow">
+        <span class="brand-mark" aria-hidden="true">✦</span>
+        <span>study flow</span>
+      </a>
+      <div class="auth-copy">
+        <span class="auth-sticker">✎ วางแผนง่าย ๆ</span>
+        <h1>เริ่มจัดการงาน<br>ในแบบของคุณ</h1>
+        <p>เก็บทุกกำหนดส่งไว้ในที่เดียว แล้วค่อย ๆ ทำให้เสร็จทีละงาน</p>
+      </div>
+      <div class="auth-illustration" aria-hidden="true">
+        <div class="book book-three"></div>
+        <div class="book book-two"></div>
+        <div class="book book-one"></div>
+        <div class="pencil-friend"><span class="pencil-face">• ᴗ •</span></div>
+        <span class="auth-spark spark-a">✦</span><span class="auth-spark spark-b">✿</span>
+      </div>
+    </div>
+
+    <div class="auth-forms">
+      <div class="auth-tabs" role="tablist" aria-label="บัญชีผู้ใช้">
+        <button class="auth-tab active" data-auth-tab="login" type="button" role="tab" aria-selected="true">เข้าสู่ระบบ</button>
+        <button class="auth-tab" data-auth-tab="register" type="button" role="tab" aria-selected="false">สมัครสมาชิก</button>
+      </div>
+
+      <form id="login-form" class="auth-form" data-auth-panel="login">
+        <div class="auth-form-heading"><p class="eyebrow">ยินดีต้อนรับกลับ</p><h2 id="auth-heading">เข้าสู่ระบบ</h2><p>กลับมาจัดการงานของคุณต่อกันเลย</p></div>
+        <label class="auth-field"><span>อีเมล</span><input id="login-email" type="email" autocomplete="email" placeholder="name@example.com" required></label>
+        <label class="auth-field"><span>รหัสผ่าน</span><input id="login-password" type="password" autocomplete="current-password" placeholder="อย่างน้อย 6 ตัวอักษร" minlength="6" required></label>
+        <p id="login-error" class="auth-error" role="alert" aria-live="polite"></p>
+        <button class="btn btn-primary auth-submit" type="submit">เข้าสู่ระบบ <span aria-hidden="true">→</span></button>
+        <p class="auth-switch">ยังไม่มีบัญชี? <button type="button" data-switch-auth="register">สมัครสมาชิก</button></p>
+      </form>
+
+      <form id="register-form" class="auth-form" data-auth-panel="register" hidden>
+        <div class="auth-form-heading"><p class="eyebrow">เริ่มต้นใช้งาน</p><h2>สร้างบัญชีใหม่</h2><p>ใช้เวลาไม่ถึงหนึ่งนาที</p></div>
+        <label class="auth-field"><span>ชื่อที่ต้องการให้เรียก</span><input id="register-name" type="text" autocomplete="name" placeholder="เช่น มินท์" maxlength="40" required></label>
+        <label class="auth-field"><span>อีเมล</span><input id="register-email" type="email" autocomplete="email" placeholder="name@example.com" required></label>
+        <label class="auth-field"><span>รหัสผ่าน</span><input id="register-password" type="password" autocomplete="new-password" placeholder="อย่างน้อย 6 ตัวอักษร" minlength="6" required></label>
+        <label class="auth-field"><span>ยืนยันรหัสผ่าน</span><input id="register-confirm" type="password" autocomplete="new-password" placeholder="พิมพ์รหัสผ่านอีกครั้ง" minlength="6" required></label>
+        <p id="register-error" class="auth-error" role="alert" aria-live="polite"></p>
+        <button class="btn btn-primary auth-submit" type="submit">สร้างบัญชี <span aria-hidden="true">✦</span></button>
+        <p class="auth-switch">มีบัญชีแล้ว? <button type="button" data-switch-auth="login">เข้าสู่ระบบ</button></p>
+      </form>
+
+      <p class="auth-note"><span aria-hidden="true">⌁</span> บัญชีทดลองนี้เก็บข้อมูลไว้ในเบราว์เซอร์เครื่องนี้</p>
+    </div>
+  </div>
+</section>
+
+<div id="app-shell" class="app-shell" hidden>
   <header class="topbar">
     <a class="brand" href="#" aria-label="StudyFlow home">
       <span class="brand-mark" aria-hidden="true">✦</span>
@@ -28,6 +81,11 @@
       <button class="tab-btn" data-tab="calendar" type="button" role="tab" aria-selected="false" aria-controls="panel-calendar">ปฏิทิน</button>
       <button class="tab-btn" data-tab="summary" type="button" role="tab" aria-selected="false" aria-controls="panel-summary">สรุป</button>
     </nav>
+    <div class="user-menu">
+      <span class="user-avatar" id="user-avatar" aria-hidden="true">S</span>
+      <span id="user-greeting" class="user-greeting"></span>
+      <button id="logout-btn" class="logout-btn" type="button">ออกจากระบบ</button>
+    </div>
     <button class="btn btn-primary" id="add-task-btn" type="button"><span aria-hidden="true">＋</span> เพิ่มงาน</button>
   </header>
 
@@ -162,14 +220,15 @@
   </div>
 </div>
 
-<script defer src="assets/js/core.js"></script>
-<script defer src="assets/js/store.js"></script>
-<script defer src="assets/js/scheduler.js"></script>
-<script defer src="assets/js/dashboard.js"></script>
-<script defer src="assets/js/chart.js"></script>
-<script defer src="assets/js/calendar.js"></script>
-<script defer src="assets/js/summary.js"></script>
-<script defer src="assets/js/modal.js"></script>
-<script defer src="assets/js/app.js"></script>
+<script defer src="assets/js/core.js?v=4"></script>
+<script defer src="assets/js/auth.js?v=4"></script>
+<script defer src="assets/js/store.js?v=4"></script>
+<script defer src="assets/js/scheduler.js?v=4"></script>
+<script defer src="assets/js/dashboard.js?v=4"></script>
+<script defer src="assets/js/chart.js?v=4"></script>
+<script defer src="assets/js/calendar.js?v=4"></script>
+<script defer src="assets/js/summary.js?v=4"></script>
+<script defer src="assets/js/modal.js?v=4"></script>
+<script defer src="assets/js/app.js?v=4"></script>
 </body>
 </html>

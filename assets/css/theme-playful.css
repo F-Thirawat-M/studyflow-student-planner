@@ -135,6 +135,8 @@ h2 { letter-spacing: -.025em; }
 .progress-track span { background: repeating-linear-gradient(-45deg, #715eea 0 8px, #8f80f8 8px 16px); }
 .summary-list-heading { background: #fffaf0; }
 .summary-task:hover { background: #fff3c9; }
+.summary-check { border: 2px solid var(--ink); border-radius: 7px 6px 8px 6px; }
+.summary-check:checked { border-color: var(--ink); background: var(--success); box-shadow: 2px 2px 0 var(--ink); }
 
 .modal-backdrop { background: rgba(37, 33, 59, .48); backdrop-filter: blur(3px); }
 .modal { border: 2px solid var(--ink); border-radius: 23px 18px 25px 20px; box-shadow: 8px 9px 0 var(--ink); }
