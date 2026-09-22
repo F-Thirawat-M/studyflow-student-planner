@@ -16,8 +16,8 @@ assets/css/views.css       Dashboard, timeline, and calendar views
 assets/css/theme-playful.css Playful hand-drawn visual theme
 assets/css/auth.css        Login and registration screens
 assets/js/core.js          Shared configuration, dates, and utilities
-assets/js/auth.js          Local account registration and sign-in
-assets/js/store.js         Local storage and task data operations
+assets/js/auth.js          Supabase registration, sign-in, and guest home
+assets/js/store.js         Task data operations through Supabase
 assets/js/scheduler.js     Dependency and critical-path calculations
 assets/js/dashboard.js     Overview rendering
 assets/js/chart.js         Timeline rendering
@@ -29,6 +29,4 @@ assets/js/app.js           App startup and event coordination
 
 ## Accounts and data
 
-Accounts and tasks are stored locally in the current browser. Passwords are salted and hashed before storage, and each account receives a separate task list. Existing tasks from the original app are migrated to the first account created in that browser.
-
-This local account system is intended for demos and coursework. A production deployment that needs cross-device login, password recovery, or shared data should use a server-side authentication provider and database.
+The home page is available without signing in. Guests can browse the planner views; adding and saving tasks requires an account. Accounts and task data are managed through Supabase, so signed-in users can access their tasks across devices. The Supabase project URL and public key are configured in `assets/js/supabase-config.js`.

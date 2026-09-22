@@ -53,11 +53,21 @@
   }
 
   function showAuthScreen() {
-    currentUser = null;
-    SF.store.clear();
     SF.utils.select('#app-shell').hidden = true;
     SF.utils.select('#auth-screen').hidden = false;
     switchPanel('login');
+    if (!client) showError('#login-error', 'เชื่อมต่อระบบบัญชีไม่ได้ กรุณาลองใหม่ภายหลัง');
+  }
+
+  function showGuestHome() {
+    currentUser = null;
+    SF.store.clear();
+    SF.utils.select('#user-menu').hidden = true;
+    SF.utils.select('#login-btn').hidden = false;
+    SF.utils.select('#guest-notice').hidden = false;
+    SF.utils.select('#auth-screen').hidden = true;
+    SF.utils.select('#app-shell').hidden = false;
+    SF.app.render();
   }
 
   async function enterApp(user) {
@@ -74,6 +84,9 @@
     }
     SF.utils.select('#auth-screen').hidden = true;
     SF.utils.select('#app-shell').hidden = false;
+    SF.utils.select('#user-menu').hidden = false;
+    SF.utils.select('#login-btn').hidden = true;
+    SF.utils.select('#guest-notice').hidden = true;
     SF.utils.select('#user-greeting').textContent = user.name;
     SF.utils.select('#user-avatar').textContent = user.name.trim().charAt(0).toUpperCase() || 'S';
     SF.app.render();
@@ -94,6 +107,7 @@
 
   function login(event) {
     event.preventDefault();
+    if (!client) return showError('#login-error', 'เชื่อมต่อระบบบัญชีไม่ได้ กรุณาลองใหม่ภายหลัง');
     return withSubmitLock(event, async () => {
       const email = SF.utils.select('#login-email').value.trim().toLowerCase();
       const password = SF.utils.select('#login-password').value;
@@ -109,6 +123,7 @@
 
   function register(event) {
     event.preventDefault();
+    if (!client) return showError('#register-error', 'เชื่อมต่อระบบบัญชีไม่ได้ กรุณาลองใหม่ภายหลัง');
     return withSubmitLock(event, async () => {
       const name = SF.utils.select('#register-name').value.trim();
       const email = SF.utils.select('#register-email').value.trim().toLowerCase();
@@ -141,13 +156,13 @@
   async function logout() {
     await SF.store.flush();   // รอให้งานที่ค้างเขียนอยู่ขึ้นเซิร์ฟเวอร์ก่อน ไม่งั้นจะหาย
     await client.auth.signOut();
-    showAuthScreen();
+    showGuestHome();
   }
 
   // session ใช้ไม่ได้แล้ว (เช่น เปลี่ยนรหัสผ่านจากเครื่องอื่น) — เรียกจาก store เมื่อเขียนได้ 401
   async function expire() {
     if (!currentUser) return;
-    showAuthScreen();
+    showGuestHome();
     SF.app.toast('เซสชันหมดอายุ กรุณาเข้าสู่ระบบใหม่', true);
     await client.auth.signOut({ scope: 'local' });
   }
@@ -158,16 +173,18 @@
     SF.utils.select('#login-form').addEventListener('submit', login);
     SF.utils.select('#register-form').addEventListener('submit', register);
     SF.utils.select('#logout-btn').addEventListener('click', logout);
+    SF.utils.select('#login-btn').addEventListener('click', showAuthScreen);
+    SF.utils.select('#guest-login-btn').addEventListener('click', showAuthScreen);
+    SF.utils.select('#auth-back-btn').addEventListener('click', showGuestHome);
 
     client = SF.db;
     if (!client) {
-      switchPanel('login');
-      showError('#login-error', 'ตั้งค่า Supabase ไม่ครบ ไม่สามารถเข้าสู่ระบบได้');
+      showGuestHome();
       return;
     }
     // ออกจากระบบจากแท็บอื่น หรือ session หมดอายุ
     client.auth.onAuthStateChange((event) => {
-      if (event === 'SIGNED_OUT' && currentUser) showAuthScreen();
+      if (event === 'SIGNED_OUT' && currentUser) showGuestHome();
     });
 
     // ซ่อนหน้าล็อกอินระหว่างตรวจ session กันจอกะพริบ
@@ -176,8 +193,17 @@
     const user = await restoreSession();
     setLoading(false);
     if (user) await enterApp(user);
-    else showAuthScreen();
+    else showGuestHome();
   }
 
-  SF.auth = { init, expire, currentUser: () => currentUser };
+  SF.auth = {
+    init,
+    expire,
+    currentUser: () => currentUser,
+    requireAuth() {
+      if (currentUser) return true;
+      showAuthScreen();
+      return false;
+    },
+  };
 })(window.StudyFlow);

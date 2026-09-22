@@ -14,10 +14,10 @@
   <link rel="stylesheet" href="assets/css/components.css">
   <link rel="stylesheet" href="assets/css/views.css">
   <link rel="stylesheet" href="assets/css/theme-playful.css">
-  <link rel="stylesheet" href="assets/css/auth.css">
+  <link rel="stylesheet" href="assets/css/auth.css?v=2">
 </head>
 <body>
-<section id="auth-screen" class="auth-screen" aria-labelledby="auth-heading">
+<section id="auth-screen" class="auth-screen" aria-labelledby="auth-heading" hidden>
   <div class="auth-card">
     <div class="auth-intro">
       <a class="auth-brand" href="#" aria-label="StudyFlow">
@@ -39,6 +39,7 @@
     </div>
 
     <div class="auth-forms">
+      <button id="auth-back-btn" class="auth-back" type="button">← กลับไปหน้าแรก</button>
       <div class="auth-tabs" role="tablist" aria-label="บัญชีผู้ใช้">
         <button class="auth-tab active" data-auth-tab="login" type="button" role="tab" aria-selected="true">เข้าสู่ระบบ</button>
         <button class="auth-tab" data-auth-tab="register" type="button" role="tab" aria-selected="false">สมัครสมาชิก</button>
@@ -84,15 +85,20 @@
       <button class="tab-btn" data-tab="calendar" type="button" role="tab" aria-selected="false" aria-controls="panel-calendar">ปฏิทิน</button>
       <button class="tab-btn" data-tab="summary" type="button" role="tab" aria-selected="false" aria-controls="panel-summary">สรุป</button>
     </nav>
-    <div class="user-menu">
+    <div class="user-menu" id="user-menu" hidden>
       <span class="user-avatar" id="user-avatar" aria-hidden="true">S</span>
       <span id="user-greeting" class="user-greeting"></span>
       <button id="logout-btn" class="logout-btn" type="button">ออกจากระบบ</button>
     </div>
+    <button class="btn btn-ghost" id="login-btn" type="button">เข้าสู่ระบบ</button>
     <button class="btn btn-primary" id="add-task-btn" type="button"><span aria-hidden="true">＋</span> เพิ่มงาน</button>
   </header>
 
   <main class="main-content">
+    <div id="guest-notice" class="guest-notice" hidden>
+      <span>ดูหน้าแอปได้เลย เมื่อพร้อมบันทึกแผนงานให้เข้าสู่ระบบหรือสมัครสมาชิก</span>
+      <button id="guest-login-btn" class="btn btn-primary" type="button">เริ่มวางแผน</button>
+    </div>
     <div class="page-heading">
       <div class="hero-copy">
         <p class="eyebrow">ตัวช่วยวางแผนการเรียน</p>
@@ -225,14 +231,14 @@
 <script defer src="assets/js/core.js?v=6"></script>
 <script defer src="assets/js/supabase-config.js?v=5"></script>
 <script defer src="assets/js/db.js?v=6"></script>
-<script defer src="assets/js/auth.js?v=6"></script>
+<script defer src="assets/js/auth.js?v=7"></script>
 <script defer src="assets/js/store.js?v=6"></script>
 <script defer src="assets/js/scheduler.js?v=4"></script>
-<script defer src="assets/js/dashboard.js?v=4"></script>
+<script defer src="assets/js/dashboard.js?v=5"></script>
 <script defer src="assets/js/chart.js?v=4"></script>
 <script defer src="assets/js/calendar.js?v=4"></script>
 <script defer src="assets/js/summary.js?v=4"></script>
-<script defer src="assets/js/modal.js?v=4"></script>
+<script defer src="assets/js/modal.js?v=5"></script>
 <script defer src="assets/js/app.js?v=4"></script>
 </body>
 </html>
