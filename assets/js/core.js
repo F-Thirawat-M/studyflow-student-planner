@@ -15,8 +15,13 @@
     return new Date(year, month - 1, day);
   }
 
+  // id ของงานเป็น uuid เต็มเพราะคอลัมน์ tasks.id ในฐานข้อมูลเป็นชนิด uuid
+  function newUuid() {
+    if (crypto.randomUUID) return crypto.randomUUID();
+    return '10000000-1000-4000-8000-100000000000'.replace(/[018]/g, (c) => (c ^ (crypto.getRandomValues(new Uint8Array(1))[0] & (15 >> (c / 4)))).toString(16));
+  }
+
   SF.config = Object.freeze({
-    storageKey: 'my-deadlines-tasks-v1',
     newTaskId: '__new__',
     maxCalendarTasks: 3,
   });
@@ -50,7 +55,7 @@
   SF.utils = {
     select: (selector, scope = document) => scope.querySelector(selector),
     selectAll: (selector, scope = document) => [...scope.querySelectorAll(selector)],
-    uid: () => `t${crypto.randomUUID ? crypto.randomUUID().slice(0, 8) : Math.random().toString(36).slice(2, 10)}`,
+    uid: newUuid,
     escapeHtml(value) {
       return String(value).replace(/[&<>"']/g, (character) => ({
         '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',

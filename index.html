@@ -64,10 +64,13 @@
         <p class="auth-switch">มีบัญชีแล้ว? <button type="button" data-switch-auth="login">เข้าสู่ระบบ</button></p>
       </form>
 
-      <p class="auth-note"><span aria-hidden="true">⌁</span> บัญชีเก็บบน Supabase ส่วนรายการงานยังเก็บไว้ในเบราว์เซอร์เครื่องนี้</p>
+      <p class="auth-note"><span aria-hidden="true">⌁</span> บัญชีและรายการงานเก็บบน Supabase เข้าใช้ได้จากทุกเครื่อง</p>
     </div>
   </div>
 </section>
+
+<div id="toast-container" class="toast-container" aria-live="polite"></div>
+<div id="app-loading" class="app-loading" role="status" hidden>กำลังโหลดงาน…</div>
 
 <div id="app-shell" class="app-shell" hidden>
   <header class="topbar">
@@ -88,8 +91,6 @@
     </div>
     <button class="btn btn-primary" id="add-task-btn" type="button"><span aria-hidden="true">＋</span> เพิ่มงาน</button>
   </header>
-
-  <div id="toast-container" class="toast-container" aria-live="polite"></div>
 
   <main class="main-content">
     <div class="page-heading">
@@ -221,10 +222,11 @@
 </div>
 
 <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script defer src="assets/js/core.js?v=5"></script>
+<script defer src="assets/js/core.js?v=6"></script>
 <script defer src="assets/js/supabase-config.js?v=5"></script>
-<script defer src="assets/js/auth.js?v=5"></script>
-<script defer src="assets/js/store.js?v=4"></script>
+<script defer src="assets/js/db.js?v=6"></script>
+<script defer src="assets/js/auth.js?v=6"></script>
+<script defer src="assets/js/store.js?v=6"></script>
 <script defer src="assets/js/scheduler.js?v=4"></script>
 <script defer src="assets/js/dashboard.js?v=4"></script>
 <script defer src="assets/js/chart.js?v=4"></script>

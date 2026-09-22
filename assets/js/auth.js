@@ -4,10 +4,8 @@
   let client = null;
   let currentUser = null;
 
-  function createClient() {
-    const { url, key } = SF.supabaseConfig || {};
-    if (!window.supabase || !url || !key) return null;
-    return window.supabase.createClient(url, key);
+  function setLoading(loading) {
+    SF.utils.select('#app-loading').hidden = !loading;
   }
 
   async function toUser(authUser) {
@@ -56,14 +54,24 @@
 
   function showAuthScreen() {
     currentUser = null;
+    SF.store.clear();
     SF.utils.select('#app-shell').hidden = true;
     SF.utils.select('#auth-screen').hidden = false;
     switchPanel('login');
   }
 
-  function enterApp(user) {
+  async function enterApp(user) {
     currentUser = user;
-    SF.store.useAccount(user.id);
+    setLoading(true);
+    try {
+      await SF.store.useAccount(user.id);
+    } catch {
+      SF.app.toast('โหลดงานไม่สำเร็จ กรุณาเข้าสู่ระบบใหม่อีกครั้ง', true);
+      await logout();
+      return;
+    } finally {
+      setLoading(false);
+    }
     SF.utils.select('#auth-screen').hidden = true;
     SF.utils.select('#app-shell').hidden = false;
     SF.utils.select('#user-greeting').textContent = user.name;
@@ -95,7 +103,7 @@
         return;
       }
       event.target.reset();
-      enterApp(await toUser(data.user));
+      await enterApp(await toUser(data.user));
     });
   }
 
@@ -122,7 +130,7 @@
       }
       event.target.reset();
       if (data.session) {
-        enterApp(await toUser(data.user));
+        await enterApp(await toUser(data.user));
         return;
       }
       switchPanel('login');
@@ -131,8 +139,17 @@
   }
 
   async function logout() {
+    await SF.store.flush();   // รอให้งานที่ค้างเขียนอยู่ขึ้นเซิร์ฟเวอร์ก่อน ไม่งั้นจะหาย
     await client.auth.signOut();
     showAuthScreen();
+  }
+
+  // session ใช้ไม่ได้แล้ว (เช่น เปลี่ยนรหัสผ่านจากเครื่องอื่น) — เรียกจาก store เมื่อเขียนได้ 401
+  async function expire() {
+    if (!currentUser) return;
+    showAuthScreen();
+    SF.app.toast('เซสชันหมดอายุ กรุณาเข้าสู่ระบบใหม่', true);
+    await client.auth.signOut({ scope: 'local' });
   }
 
   async function init() {
@@ -142,7 +159,7 @@
     SF.utils.select('#register-form').addEventListener('submit', register);
     SF.utils.select('#logout-btn').addEventListener('click', logout);
 
-    client = createClient();
+    client = SF.db;
     if (!client) {
       switchPanel('login');
       showError('#login-error', 'ตั้งค่า Supabase ไม่ครบ ไม่สามารถเข้าสู่ระบบได้');
@@ -155,10 +172,12 @@
 
     // ซ่อนหน้าล็อกอินระหว่างตรวจ session กันจอกะพริบ
     SF.utils.select('#auth-screen').hidden = true;
+    setLoading(true);
     const user = await restoreSession();
-    if (user) enterApp(user);
+    setLoading(false);
+    if (user) await enterApp(user);
     else showAuthScreen();
   }
 
-  SF.auth = { init, currentUser: () => currentUser };
+  SF.auth = { init, expire, currentUser: () => currentUser };
 })(window.StudyFlow);
