@@ -14,10 +14,38 @@
   // cache ในหน่วยความจำ: view อ่านแบบ sync ส่วนการเขียนขึ้น Supabase ทำเบื้องหลังตามลำดับ
   let tasks = [];
   let activeUserId = null;
+  let guestMode = false;
+  const guestStorageKey = 'studyflow.guest.tasks.v1';
   let version = 0;          // เพิ่มทุกครั้งที่แก้ cache เพื่อไม่ให้ผลโหลดจากเซิร์ฟเวอร์ที่ช้ากว่าไปทับ
   let pendingWrites = 0;
   let needsReload = false;
   let writeQueue = Promise.resolve();
+
+  function readGuestTasks() {
+    try {
+      const saved = JSON.parse(localStorage.getItem(guestStorageKey) || '[]');
+      if (!Array.isArray(saved)) return [];
+      const clean = saved
+        .filter((task) => task && typeof task.id === 'string' && /^[0-9a-f-]{36}$/i.test(task.id)
+          && typeof task.name === 'string'
+          && typeof task.dueDate === 'string' && Array.isArray(task.deps))
+        .map(normalizeTask)
+        .filter((task) => task.name && task.name.length <= 80 && /^\d{4}-\d{2}-\d{2}$/.test(task.dueDate)
+          && SF.date.format(SF.date.parse(task.dueDate)) === task.dueDate);
+      const ids = new Set(clean.map((task) => task.id));
+      return clean.map((task) => ({ ...task, deps: task.deps.filter((id) => id !== task.id && ids.has(id)) }));
+    } catch {
+      return [];
+    }
+  }
+
+  function persistGuestTasks() {
+    try {
+      localStorage.setItem(guestStorageKey, JSON.stringify(tasks));
+    } catch {
+      SF.app.toast('บันทึกงานในเบราว์เซอร์ไม่ได้ กรุณาตรวจพื้นที่จัดเก็บหรือการตั้งค่าเบราว์เซอร์', true);
+    }
+  }
 
   async function fetchTasks() {
     const [taskResult, dependencyResult] = await Promise.all([
@@ -97,14 +125,28 @@
   SF.store = {
     all: () => tasks,
     find: (id) => tasks.find((task) => task.id === id),
-    async useAccount(userId) {
-      tasks = await fetchTasks();
-      activeUserId = userId;
+    useGuest() {
+      activeUserId = null;
+      guestMode = true;
+      needsReload = false;
+      tasks = readGuestTasks();
       version += 1;
+    },
+    async useAccount(userId) {
+      const startVersion = version;
+      const fetched = await fetchTasks();
+      // อาจออกจากระบบระหว่างรอข้อมูล อย่านำงานของเซสชันเดิมกลับมาแสดง
+      if (version !== startVersion) return false;
+      tasks = fetched;
+      activeUserId = userId;
+      guestMode = false;
+      version += 1;
+      return true;
     },
     clear() {
       tasks = [];
       activeUserId = null;
+      guestMode = false;
       needsReload = false;
       version += 1;
     },
@@ -116,6 +158,10 @@
       if (index === -1) tasks.push(cleanTask);
       else tasks[index] = cleanTask;
       version += 1;
+      if (guestMode) {
+        persistGuestTasks();
+        return cleanTask;
+      }
       enqueue(() => SF.db.rpc('save_task', {
         p_id: cleanTask.id,
         p_name: cleanTask.name,
@@ -130,6 +176,10 @@
         .filter((task) => task.id !== id)
         .map((task) => ({ ...task, deps: task.deps.filter((dependency) => dependency !== id) }));
       version += 1;
+      if (guestMode) {
+        persistGuestTasks();
+        return;
+      }
       // dependency ที่ชี้มางานนี้ถูกลบตามด้วย on delete cascade
       enqueue(() => SF.db.from('tasks').delete().eq('id', id));
     },
@@ -138,6 +188,10 @@
       if (!task) return;
       task.done = Boolean(done);
       version += 1;
+      if (guestMode) {
+        persistGuestTasks();
+        return;
+      }
       enqueue(() => SF.db.from('tasks').update({ done: task.done }).eq('id', id));
     },
   };

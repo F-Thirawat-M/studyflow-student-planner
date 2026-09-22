@@ -16,8 +16,8 @@ assets/css/views.css       Dashboard, timeline, and calendar views
 assets/css/theme-playful.css Playful hand-drawn visual theme
 assets/css/auth.css        Login and registration screens
 assets/js/core.js          Shared configuration, dates, and utilities
-assets/js/auth.js          Local account registration and sign-in
-assets/js/store.js         Local storage and task data operations
+assets/js/auth.js          Supabase registration, sign-in, and guest home
+assets/js/store.js         Task data operations through Supabase
 assets/js/scheduler.js     Dependency and critical-path calculations
 assets/js/dashboard.js     Overview rendering
 assets/js/chart.js         Timeline rendering
@@ -29,6 +29,12 @@ assets/js/app.js           App startup and event coordination
 
 ## Accounts and data
 
-Accounts and tasks are stored locally in the current browser. Passwords are salted and hashed before storage, and each account receives a separate task list. Existing tasks from the original app are migrated to the first account created in that browser.
+The full planner is available without signing in. Guest tasks are saved only in that browser's local storage; clearing browser data removes them. Signing in shows the account's Supabase tasks instead. Guest tasks remain in the browser and reappear after signing out; they are not automatically uploaded to the account. The Supabase project URL and public key are configured in `assets/js/supabase-config.js`.
 
-This local account system is intended for demos and coursework. A production deployment that needs cross-device login, password recovery, or shared data should use a server-side authentication provider and database.
+## Deploy
+
+This is a static site. After reviewing the Supabase database permissions, publish the `main` branch from `/(root)` in the repository's **Settings → Pages**. The expected project URL is `https://f-thirawat-m.github.io/studyflow-student-planner/`.
+
+Before enabling Pages, verify in Supabase that Row Level Security is enabled and restricts `profiles`, `tasks`, and `task_dependencies` to the signed-in owner. Check that the `save_task` function cannot be executed by guests or used to change another user's tasks. These database policies are managed outside this repository, so the client code alone cannot establish that they are safe.
+
+In Supabase **Authentication → URL Configuration**, set the Site URL to the published Pages URL so email confirmation returns to this app. Keep the publishable key in the browser; never put a secret or service role key in this repository.

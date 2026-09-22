@@ -8,7 +8,9 @@
     const slot = select('#up-next-slot');
     const openTasks = tasks.filter((task) => !task.done).sort((a, b) => date.diffDays(a.dueDate, b.dueDate));
     if (!openTasks.length) {
-      slot.innerHTML = '<div class="up-next is-empty"><span class="success-icon" aria-hidden="true">✓</span><div><strong>เรียบร้อยครบทุกงานแล้ว</strong><p>เพิ่มงานใหม่ได้เมื่อพร้อมวางแผนสิ่งต่อไป</p></div></div>';
+      slot.innerHTML = SF.auth.currentUser()
+        ? '<div class="up-next is-empty"><span class="success-icon" aria-hidden="true">✓</span><div><strong>เรียบร้อยครบทุกงานแล้ว</strong><p>เพิ่มงานใหม่ได้เมื่อพร้อมวางแผนสิ่งต่อไป</p></div></div>'
+        : '<div class="up-next is-empty"><span class="success-icon" aria-hidden="true">✦</span><div><strong>เริ่มวางแผนการเรียนได้ที่นี่</strong><p>เพิ่มงานแรกได้เลย ไม่ต้องสมัครสมาชิก</p></div></div>';
       return;
     }
 
@@ -55,6 +57,7 @@
     const body = select('#task-list-body');
     const sorted = [...tasks].sort((a, b) => a.done - b.done || date.diffDays(a.dueDate, b.dueDate));
     select('#empty-hint').hidden = sorted.length > 0;
+    select('#empty-hint').textContent = 'ยังไม่มีงาน — ลองเพิ่มงานแรกของคุณ';
     body.innerHTML = sorted.map((task) => {
       const dependencies = task.deps.map((id) => SF.store.find(id)?.name || 'ไม่พบงาน').join(', ') || '—';
       const status = task.done ? ['เสร็จแล้ว', 'done'] : schedule[task.id]?.critical ? ['ห้ามล่าช้า', 'critical'] : ['ตามแผน', ''];
