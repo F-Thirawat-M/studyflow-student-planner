@@ -74,7 +74,7 @@
     currentUser = user;
     setLoading(true);
     try {
-      await SF.store.useAccount(user.id);
+      if (!await SF.store.useAccount(user.id) || currentUser?.id !== user.id) return;
     } catch {
       SF.app.toast('โหลดงานไม่สำเร็จ กรุณาเข้าสู่ระบบใหม่อีกครั้ง', true);
       await logout();

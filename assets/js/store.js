@@ -98,9 +98,14 @@
     all: () => tasks,
     find: (id) => tasks.find((task) => task.id === id),
     async useAccount(userId) {
-      tasks = await fetchTasks();
+      const startVersion = version;
+      const fetched = await fetchTasks();
+      // อาจออกจากระบบระหว่างรอข้อมูล อย่านำงานของเซสชันเดิมกลับมาแสดง
+      if (version !== startVersion) return false;
+      tasks = fetched;
       activeUserId = userId;
       version += 1;
+      return true;
     },
     clear() {
       tasks = [];
