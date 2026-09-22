@@ -29,7 +29,7 @@ assets/js/app.js           App startup and event coordination
 
 ## Accounts and data
 
-The home page is available without signing in. Guests can browse the planner views; adding and saving tasks requires an account. Accounts and task data are managed through Supabase, so signed-in users can access their tasks across devices. The Supabase project URL and public key are configured in `assets/js/supabase-config.js`.
+The full planner is available without signing in. Guest tasks are saved only in that browser's local storage; clearing browser data removes them. Signing in shows the account's Supabase tasks instead. Guest tasks remain in the browser and reappear after signing out; they are not automatically uploaded to the account. The Supabase project URL and public key are configured in `assets/js/supabase-config.js`.
 
 ## Deploy
 

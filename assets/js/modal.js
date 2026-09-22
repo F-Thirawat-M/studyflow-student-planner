@@ -18,7 +18,6 @@
   }
 
   function open(id) {
-    if (!SF.auth.requireAuth()) return;
     const editing = SF.store.find(id);
     taskId = editing?.id || SF.config.newTaskId;
     draftId = editing?.id || uid();

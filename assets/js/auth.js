@@ -61,7 +61,7 @@
 
   function showGuestHome() {
     currentUser = null;
-    SF.store.clear();
+    SF.store.useGuest();
     SF.utils.select('#user-menu').hidden = true;
     SF.utils.select('#login-btn').hidden = false;
     SF.utils.select('#guest-notice').hidden = false;
@@ -196,14 +196,5 @@
     else showGuestHome();
   }
 
-  SF.auth = {
-    init,
-    expire,
-    currentUser: () => currentUser,
-    requireAuth() {
-      if (currentUser) return true;
-      showAuthScreen();
-      return false;
-    },
-  };
+  SF.auth = { init, expire, currentUser: () => currentUser };
 })(window.StudyFlow);
